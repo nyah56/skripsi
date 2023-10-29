@@ -5,8 +5,8 @@ useHead({
   meta: [{ content: title }],
   titleTemplate: (titleChunk) => {
     return titleChunk
-      ? `${titleChunk} - Nuxt3 Typescript based Free Admin Dashboard Template`
-      : "Modernize - Nuxt3 Typescript based Free Admin Dashboard Template";
+      ? `${titleChunk} - Skripsi`
+      : "Skripsi";
   },
 });
 </script>
