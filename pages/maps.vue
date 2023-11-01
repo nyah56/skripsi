@@ -47,7 +47,6 @@ export default {
     };
 
     return {
-      markerCoordinates,
       btsData,
       isLoad,
     };
@@ -193,10 +192,10 @@ export default {
 };
 </script>
 <template>
-  <h1>{{ isLoad }}</h1>
+  <!-- <h1>{{ isLoad }}</h1>
   <uL v-for="data in btsData">
-    <li>{{ data.koordinat }}</li>
-  </uL>
+    <li>{{ data.coordinates }}</li>
+  </uL> -->
 
   <div style="height: 80vh; width: 75vw">
     <Loading v-if="isLoad">Loading Data BTS...</Loading>
