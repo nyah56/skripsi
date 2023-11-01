@@ -1,6 +1,7 @@
 <template>
-  <div v-if="isLoading" class="loading-overlay">
+  <div class="loading-overlay">
     <div class="loader"></div>
+    <slot></slot>
   </div>
 </template>
 
@@ -11,7 +12,11 @@ export default {
 </script>
 
 <style scoped>
+body {
+  margin: 0px;
+}
 .loading-overlay {
+  flex-direction: column;
   position: absolute;
   top: 0;
   left: 0;
@@ -30,6 +35,7 @@ export default {
   width: 50px;
   height: 50px;
   animation: spin 2s linear infinite;
+  margin: 20px;
 }
 
 @keyframes spin {

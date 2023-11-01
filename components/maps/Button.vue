@@ -46,7 +46,7 @@ export default {
 <style scoped>
 .custom-button {
   /* Basic button styles */
-  padding: 15px;
+  padding: 8px;
   border: none;
   border-radius: 4px;
   cursor: pointer;

@@ -2,7 +2,56 @@
 import Button from '@/components/maps/Button.vue';
 import Loading from '@/components/maps/Loading.vue';
 import { CurrentLocationIcon } from 'vue-tabler-icons';
+import { collection, getDocs } from 'firebase/firestore';
+import { onMounted, ref, computed } from 'vue';
+
 export default {
+  setup() {
+    const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
+
+    const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" collection
+
+    const btsData = ref([]); // A ref to store the data
+    const isLoad = ref(true);
+    onMounted(() => {
+      getBTSData();
+    });
+    const getBTSData = async () => {
+      try {
+        const data = [];
+        const querySnapshot = await getDocs(btsCollection);
+
+        querySnapshot.forEach((doc) => {
+          // Here, you can access the document data
+          data.push(doc.data());
+        });
+
+        const modifiedData = data.map((item) => {
+          const { nama_bts, alamat, koordinat, id_bts } = item;
+          const coordinates = [koordinat.latitude, koordinat.longitude];
+
+          return {
+            id_bts,
+            nama: nama_bts,
+            alamat,
+            coordinates,
+          };
+        });
+
+        btsData.value = modifiedData;
+        isLoad.value = false;
+        console.log('array', btsData.value);
+      } catch (error) {
+        console.error('Error getting data:', error);
+      }
+    };
+
+    return {
+      markerCoordinates,
+      btsData,
+      isLoad,
+    };
+  },
   components: {
     Button,
     CurrentLocationIcon,
@@ -18,7 +67,6 @@ export default {
   },
   data() {
     return {
-      tes: true,
       urlTag: '/red-icon.png',
       urlBTS: '/bts.png',
       defaultLocation: [-7.2928347, 112.721984], //default callback
@@ -30,9 +78,21 @@ export default {
       kmRad: 1,
       hasLocation: false,
       btsLoc: [
-        { name: 'BTS-Trinity', coordinate: [-7.292883, 112.721768] },
-        { name: 'BTS-Neo', coordinate: [-7.291484, 112.715535] },
-        { name: 'BTS-Architect', coordinate: [-7.263867, 112.746665] },
+        {
+          nama_bts: 'BTS-Trinity',
+          koordinat: { latitude: -7.292883, longitude: 112.721768 },
+        },
+
+        // { "latitude": -7.330942, "longitude": 112.752649 }
+
+        {
+          nama_bts: 'BTS-Neo',
+          koordinat: { latitude: -7.291484, longitude: 112.715535 },
+        },
+        {
+          nama_bts: 'BTS-Architect',
+          koordinat: { latitude: -7.263867, longitude: 112.746665 },
+        },
       ],
       location: null,
       gettingLocation: false,
@@ -42,8 +102,9 @@ export default {
   // components: { Tag },
   mounted() {
     this.geocodeAndSetMarker();
-    console.log(this.gettingLocation);
     // this.tes();
+    // this.ini();
+    // this.getData();
   },
   methods: {
     async getLocation() {
@@ -83,20 +144,7 @@ export default {
         this.errorStr = e.message;
       }
     },
-    // async tes() {
-    //   let locate = await this.locateMe();
-    //   this.hasLocation = true;
-    //   //should be async
-    //   // if (!this.stateLocation) {
-    //   //   this.stateLocation = true;
-    //   // } else {
-    //   //   this.stateLocation = false;
-    //   //   return this.defaultLocation;
-    //   // }
-    //   this.defaultLocation[0] = locate[0];
-    //   this.defaultLocation[1] = locate[1];
-    //   console.log(this.defaultLocation);
-    // },
+
     pixelsToKilometers(pixels) {
       // Replace this with the actual scale factor for your map
       const scalePerPixel = 0.0001; // Example scale factor (adjust as needed)
@@ -110,8 +158,8 @@ export default {
       return pixels;
     },
     async geocodeAndSetMarker() {
-      const lat = this.btsLocation[0];
-      const lng = this.btsLocation[1];
+      const lat = -7.291484;
+      const lng = 112.715535;
 
       // Construct the OSM API URL for reverse geocoding
       const apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
@@ -135,6 +183,7 @@ export default {
           this.btsLocation = [lat, lng];
           this.btsLocation.city = city;
           this.btsLocation.country = country;
+          // console.log(city);
         }
       } catch (error) {
         console.error('Geocoding failed:', error);
@@ -144,10 +193,20 @@ export default {
 };
 </script>
 <template>
-  <!-- <h1>{{ defaultLocation }}</h1> -->
+  <h1>{{ isLoad }}</h1>
+  <uL v-for="data in btsData">
+    <li>{{ data.koordinat }}</li>
+  </uL>
 
   <div style="height: 80vh; width: 75vw">
-    <LMap ref="map" :zoom="zoom" :center="defaultLocation" :key="location">
+    <Loading v-if="isLoad">Loading Data BTS...</Loading>
+    <LMap
+      ref="map"
+      :zoom="zoom"
+      :center="defaultLocation"
+      :key="location"
+      v-else
+    >
       <LTileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&amp;copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
@@ -156,19 +215,18 @@ export default {
       />
       <LControl position="bottomleft"
         ><Button :type="defaultPosition" @click="locateMe"
-          ><current-location-icon></current-location-icon></Button
-      ></LControl>
-      <LMarker
-        v-for="data in btsLoc"
-        ref="marker"
-        @dblclick="btsClick"
-        :lat-lng="data.coordinate"
-      >
-        <LTooltip>{{ data.name }}</LTooltip>
+          ><current-location-icon></current-location-icon
+        ></Button>
+      </LControl>
+      <LMarker v-for="data in btsData" ref="marker" :lat-lng="data.coordinates">
+        <LTooltip>{{ data.nama }}</LTooltip>
 
         <LIcon :icon-url="urlBTS" :icon-size="[25, 25]" />
       </LMarker>
-
+      <!-- <LMarker v-for="data in btsLoc" :lat-lng="data.koordinat" ref="marker">
+        <LTooltip>You</LTooltip>
+        <LIcon :icon-url="urlTag" :icon-size="iconSize" />
+      </LMarker> -->
       <LMarker :lat-lng="defaultLocation" ref="marker" v-if="location">
         <LTooltip>You</LTooltip>
         <LIcon :icon-url="urlTag" :icon-size="iconSize" />
@@ -180,8 +238,6 @@ export default {
         v-if="location"
       />
     </LMap>
-
-    <Loading :isLoading="gettingLocation"></Loading>
   </div>
 </template>
 <!-- [-7.2928347, 112.721984] -->
