@@ -263,7 +263,7 @@ export default {
     </LMap>
   </div>
 </template>
-<style>
+<style scoped>
 .list {
   display: flex;
   flex-direction: column;
