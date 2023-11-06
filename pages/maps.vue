@@ -1,6 +1,7 @@
 <script>
 import Button from '@/components/maps/Button.vue';
 import Loading from '@/components/maps/Loading.vue';
+import Card from '@/components/maps/Card.vue';
 import { CurrentLocationIcon } from 'vue-tabler-icons';
 import { collection, getDocs } from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
@@ -12,6 +13,7 @@ export default {
     const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" collection
 
     const btsData = ref([]); // A ref to store the data
+    const btsCalc = ref([]);
     const isLoad = ref(true);
     onMounted(() => {
       getBTSData();
@@ -40,21 +42,33 @@ export default {
 
         btsData.value = modifiedData;
         isLoad.value = false;
-        console.log('array', btsData.value);
+        // console.log('array', btsData.value);
       } catch (error) {
         console.error('Error getting data:', error);
       }
     };
+    //replace map center after convertion to composition api
+    const cardClick = (args) => {
+      // console.log(args);
+      const towerData = btsData.value;
 
+      const selectedItem = towerData.find((item) => item.id_bts === args);
+      if (selectedItem) {
+        const koordinat = selectedItem.coordinates;
+        console.log(koordinat);
+      }
+    };
     return {
       btsData,
       isLoad,
+      cardClick,
     };
   },
   components: {
     Button,
     CurrentLocationIcon,
     Loading,
+    Card,
   },
   computed: {
     valToRadius() {
@@ -72,7 +86,7 @@ export default {
       currentLocation: [],
       zoom: 36, // Adjust the zoom level as needed
       btsLocation: [],
-
+      jarak: 400,
       iconSize: [20, 35],
       kmRad: 1,
       hasLocation: false,
@@ -197,7 +211,7 @@ export default {
     <li>{{ data.coordinates }}</li>
   </uL> -->
 
-  <div style="height: 80vh; width: 75vw">
+  <div style="height: 85vh; width: 75vw">
     <Loading v-if="isLoad">Loading Data BTS...</Loading>
     <LMap
       ref="map"
@@ -212,6 +226,16 @@ export default {
         layer-type="base"
         name="OpenStreetMap"
       />
+      <LControl position="topright">
+        <div class="list" v-if="location">
+          <Card
+            :title="data.nama"
+            :distance="jarak"
+            v-for="data in btsData"
+            @click="cardClick(data.id_bts)"
+          />
+        </div>
+      </LControl>
       <LControl position="bottomleft"
         ><Button :type="defaultPosition" @click="locateMe"
           ><current-location-icon></current-location-icon
@@ -239,6 +263,12 @@ export default {
     </LMap>
   </div>
 </template>
+<style>
+.list {
+  display: flex;
+  flex-direction: column;
+}
+</style>
 <!-- [-7.2928347, 112.721984] -->
 
 <!--  -->
