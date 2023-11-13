@@ -120,7 +120,7 @@ export default {
     // this.getData();
   },
   methods: {
-    async getLocation() {
+    async getLocation(options) {
       return new Promise((resolve, reject) => {
         if (!('geolocation' in navigator)) {
           reject(new Error('Geolocation is not available.'));
@@ -141,9 +141,23 @@ export default {
       try {
         this.hasLocation = true;
         this.gettingLocation = false;
-        this.location = await this.getLocation();
-        // console.log(this.location);
-
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        };
+        this.location = await this.getLocation(options);
+        console.log(this.location);
+        if (options && typeof options.enableHighAccuracy === 'boolean') {
+          if (options.enableHighAccuracy) {
+            console.log('High accuracy is enabled.');
+          } else {
+            console.log('High accuracy is not enabled.');
+          }
+        } else {
+          console.log(
+            'enableHighAccuracy option is not properly set in the options object.'
+          );
+        }
         this.currentLocation[0] = this.location.coords.latitude;
         this.currentLocation[1] = this.location.coords.longitude;
         let lat = this.currentLocation[0];
@@ -228,12 +242,18 @@ export default {
       />
       <LControl position="topright">
         <div class="list" v-if="location">
-          <Card
+          <!-- <Card
             :title="data.nama"
             :distance="jarak"
             v-for="data in btsData"
             @click="cardClick(data.id_bts)"
-          />
+          /> -->
+          <ul>
+            <h4>Nama BTS - Jarak</h4>
+            <li v-for="data in btsData" @click="cardClick(data.id_bts)">
+              <p>{{ data.nama }} - {{ jarak }}</p>
+            </li>
+          </ul>
         </div>
       </LControl>
       <LControl position="bottomleft"
@@ -267,6 +287,19 @@ export default {
 .list {
   display: flex;
   flex-direction: column;
+  background-color: #f0f0f0;
+  padding: 10px;
+}
+ul > li {
+  list-style: none;
+}
+
+li {
+  padding: 5px;
+  margin-bottom: 5px;
+}
+li:hover {
+  background-color: #d4d4d4;
 }
 </style>
 <!-- [-7.2928347, 112.721984] -->

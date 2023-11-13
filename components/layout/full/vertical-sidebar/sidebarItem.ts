@@ -37,32 +37,32 @@ const sidebarItem: menu[] = [
   },
   { header: 'utilities' },
   {
-    title: 'Typography',
-    icon: TypographyIcon,
-    to: '/ui/typography',
+    title: 'BTS',
+    icon: BroadcastIcon,
+    to: '/bts/',
   },
-  {
-    title: 'Shadow',
-    icon: CopyIcon,
-    to: '/ui/shadow',
-  },
+  // {
+  //   title: 'Shadow',
+  //   icon: CopyIcon,
+  //   to: '/ui/shadow',
+  // },
   { header: 'auth' },
   {
     title: 'Login',
     icon: LoginIcon,
     to: '/auth/login',
   },
-  {
-    title: 'Register',
-    icon: UserPlusIcon,
-    to: '/auth/register',
-  },
-  { header: 'Extra' },
-  {
-    title: 'Icons',
-    icon: MoodHappyIcon,
-    to: '/icons',
-  },
+  // {
+  //   title: 'Register',
+  //   icon: UserPlusIcon,
+  //   to: '/auth/register',
+  // },
+  // { header: 'Extra' },
+  // {
+  //   title: 'Icons',
+  //   icon: MoodHappyIcon,
+  //   to: '/icons',
+  // },
 ];
 
 export default sidebarItem;
