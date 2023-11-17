@@ -1,222 +1,172 @@
-<script>
+<script setup>
 import Button from '@/components/maps/Button.vue';
 import Loading from '@/components/maps/Loading.vue';
 import Card from '@/components/maps/Card.vue';
 import { CurrentLocationIcon } from 'vue-tabler-icons';
 import { collection, getDocs } from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
+const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 
-export default {
-  setup() {
-    const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
+const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" collection
 
-    const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" collection
+const btsCalc = ref([]);
+const urlTag = ref('/red-icon.png');
+const urlBTS = ref('/bts.png');
+const zoom = ref(36);
+const jarak = ref(100);
+const kmRad = ref(1);
+// converting km to Pixel for Radius on Lcircle
+const valToRadius = computed(() => {
+  const scalePerPixel = 0.001; // Example scale factor (adjust as needed)
+  const pixels = kmRad.value / scalePerPixel;
+  return pixels;
+});
+onMounted(() => {
+  getBTSData();
+  geocodeAndSetMarker();
+});
+// fetch from osm coor to object
+const btsLocation = ref([]);
 
-    const btsData = ref([]); // A ref to store the data
-    const btsCalc = ref([]);
-    const isLoad = ref(true);
-    onMounted(() => {
-      getBTSData();
+// fetching Data from FB document BTS
+const isLoad = ref(true);
+const btsData = ref([]); // ref For Fetching
+const getBTSData = async () => {
+  try {
+    const data = [];
+    const querySnapshot = await getDocs(btsCollection);
+
+    querySnapshot.forEach((doc) => {
+      // Here, you can access the document data
+      data.push(doc.data());
     });
-    const getBTSData = async () => {
-      try {
-        const data = [];
-        const querySnapshot = await getDocs(btsCollection);
 
-        querySnapshot.forEach((doc) => {
-          // Here, you can access the document data
-          data.push(doc.data());
-        });
+    const modifiedData = data.map((item) => {
+      const { nama_bts, alamat, koordinat, id_bts } = item;
+      const coordinates = [koordinat.latitude, koordinat.longitude];
 
-        const modifiedData = data.map((item) => {
-          const { nama_bts, alamat, koordinat, id_bts } = item;
-          const coordinates = [koordinat.latitude, koordinat.longitude];
+      return {
+        id_bts,
+        nama: nama_bts,
+        alamat,
+        coordinates,
+      };
+    });
 
-          return {
-            id_bts,
-            nama: nama_bts,
-            alamat,
-            coordinates,
-          };
-        });
+    btsData.value = modifiedData;
+    isLoad.value = false;
+    // console.log('array', btsData.value);
+  } catch (error) {
+    console.error('Error getting data:', error);
+  }
+};
 
-        btsData.value = modifiedData;
-        isLoad.value = false;
-        // console.log('array', btsData.value);
-      } catch (error) {
-        console.error('Error getting data:', error);
+// hasLocation: false,
+//   location: null,
+//   gettingLocation: false,
+//   errorStr: null,
+const defaultLocation = ref({ lat: -7.2928347, lng: 112.721984 });
+const hasLocation = ref(false);
+
+const defaultPosition = computed(() => {
+  return hasLocation.value ? 'primary' : 'secondary';
+});
+const location = ref(null);
+const gettingLocation = ref(false);
+const errorStr = ref(null);
+const getLocation = async (options) => {
+  return new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+      reject(new Error('Geolocation is not available.'));
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve(pos);
+      },
+      (err) => {
+        reject(err);
       }
-    };
-    //replace map center after convertion to composition api
-    const cardClick = (args) => {
-      // console.log(args);
-      const towerData = btsData.value;
+    );
+  });
+};
 
-      const selectedItem = towerData.find((item) => item.id_bts === args);
-      if (selectedItem) {
-        const koordinat = selectedItem.coordinates;
-        console.log(koordinat);
+const locateMe = async () => {
+  gettingLocation.value = true;
+  try {
+    hasLocation.value = true;
+    gettingLocation.value = false;
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+    };
+    location.value = await getLocation(options);
+    // console.log('raw', location.value);
+    if (options && typeof options.enableHighAccuracy === 'boolean') {
+      if (options.enableHighAccuracy) {
+        console.log('High accuracy is enabled.');
+      } else {
+        console.log('High accuracy is not enabled.');
       }
-    };
-    return {
-      btsData,
-      isLoad,
-      cardClick,
-    };
-  },
-  components: {
-    Button,
-    CurrentLocationIcon,
-    Loading,
-    Card,
-  },
-  computed: {
-    valToRadius() {
-      return this.kilometersToPixels(this.kmRad);
-    },
-    defaultPosition() {
-      return this.hasLocation ? 'primary' : 'secondary';
-    },
-  },
-  data() {
-    return {
-      urlTag: '/red-icon.png',
-      urlBTS: '/bts.png',
-      defaultLocation: [-7.2928347, 112.721984], //default callback
-      currentLocation: [],
-      zoom: 36, // Adjust the zoom level as needed
-      btsLocation: [],
-      jarak: 400,
-      iconSize: [20, 35],
-      kmRad: 1,
-      hasLocation: false,
-      btsLoc: [
-        {
-          nama_bts: 'BTS-Trinity',
-          koordinat: { latitude: -7.292883, longitude: 112.721768 },
-        },
+    } else {
+      console.log(
+        'enableHighAccuracy option is not properly set in the options object.'
+      );
+    }
+    // let defaultLocArr = Object.values(defaultLocation.value);
+    defaultLocation.value.lat = location.value.coords.latitude;
+    defaultLocation.value.lng = location.value.coords.longitude;
 
-        // { "latitude": -7.330942, "longitude": 112.752649 }
+    let lat = defaultLocation.value.lat;
+    let long = defaultLocation.value.lng;
+    // console.log(defaultLocation.value);
+    return [lat, long];
+  } catch (e) {
+    gettingLocation.value = false;
+    errorStr.value = e.message;
+  }
+};
+const geocodeAndSetMarker = async ({ 0: lat, 1: lng }) => {
+  // Construct the OSM API URL for reverse geocoding
+  // console.log(lat);
+  const apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
 
-        {
-          nama_bts: 'BTS-Neo',
-          koordinat: { latitude: -7.291484, longitude: 112.715535 },
-        },
-        {
-          nama_bts: 'BTS-Architect',
-          koordinat: { latitude: -7.263867, longitude: 112.746665 },
-        },
-      ],
-      location: null,
-      gettingLocation: false,
-      errorStr: null,
-    };
-  },
-  // components: { Tag },
-  mounted() {
-    this.geocodeAndSetMarker();
-    // this.tes();
-    // this.ini();
-    // this.getData();
-  },
-  methods: {
-    async getLocation(options) {
-      return new Promise((resolve, reject) => {
-        if (!('geolocation' in navigator)) {
-          reject(new Error('Geolocation is not available.'));
-        }
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            resolve(pos);
-          },
-          (err) => {
-            reject(err);
-          }
-        );
-      });
-    },
-    async locateMe() {
-      this.gettingLocation = true;
-      try {
-        this.hasLocation = true;
-        this.gettingLocation = false;
-        const options = {
-          enableHighAccuracy: true,
-          timeout: 10000,
-        };
-        this.location = await this.getLocation(options);
-        console.log(this.location);
-        if (options && typeof options.enableHighAccuracy === 'boolean') {
-          if (options.enableHighAccuracy) {
-            console.log('High accuracy is enabled.');
-          } else {
-            console.log('High accuracy is not enabled.');
-          }
-        } else {
-          console.log(
-            'enableHighAccuracy option is not properly set in the options object.'
-          );
-        }
-        this.currentLocation[0] = this.location.coords.latitude;
-        this.currentLocation[1] = this.location.coords.longitude;
-        let lat = this.currentLocation[0];
-        let long = this.currentLocation[1];
-        this.defaultLocation[0] = lat;
-        this.defaultLocation[1] = long;
+    const data = await response.json();
+    // console.log(data);
+    if (data.address) {
+      // Extract address information from OSM data
+      const address = data.address;
+      const city =
+        address.city || address.town || address.village || address.county;
+      const country = address.country;
 
-        return [lat, long];
-      } catch (e) {
-        this.gettingLocation = false;
-        this.errorStr = e.message;
-      }
-    },
+      // Update the btsLocation with the reverse geocoded data
+      btsLocation.value = [lat, lng];
+      btsLocation.value.city = city;
+      btsLocation.value.country = country;
+      console.log(city);
+    }
+  } catch (error) {
+    console.error('Geocoding failed:', error);
+  }
+};
+//replace map center after convertion to composition api
+const cardClick = (args) => {
+  // console.log(args);
+  const towerData = btsData.value;
 
-    pixelsToKilometers(pixels) {
-      // Replace this with the actual scale factor for your map
-      const scalePerPixel = 0.0001; // Example scale factor (adjust as needed)
-      const kilometers = pixels * scalePerPixel;
-      return kilometers;
-    },
-    kilometersToPixels(kilometers) {
-      // Replace this with the actual scale factor for your map
-      const scalePerPixel = 0.001; // Example scale factor (adjust as needed)
-      const pixels = kilometers / scalePerPixel;
-      return pixels;
-    },
-    async geocodeAndSetMarker() {
-      const lat = -7.291484;
-      const lng = 112.715535;
-
-      // Construct the OSM API URL for reverse geocoding
-      const apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-
-      try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // console.log(data);
-        if (data.address) {
-          // Extract address information from OSM data
-          const address = data.address;
-          const city =
-            address.city || address.town || address.village || address.county;
-          const country = address.country;
-
-          // Update the btsLocation with the reverse geocoded data
-          this.btsLocation = [lat, lng];
-          this.btsLocation.city = city;
-          this.btsLocation.country = country;
-          // console.log(city);
-        }
-      } catch (error) {
-        console.error('Geocoding failed:', error);
-      }
-    },
-  },
+  const selectedItem = towerData.find((item) => item.id_bts === args);
+  if (selectedItem) {
+    const koordinat = selectedItem.coordinates;
+    // console.log(koordinat);
+    geocodeAndSetMarker(koordinat);
+  }
 };
 </script>
 <template>
@@ -241,7 +191,7 @@ export default {
         name="OpenStreetMap"
       />
       <LControl position="topright">
-        <div class="list" v-if="location">
+        <div class="list" v-if="hasLocation">
           <!-- <Card
             :title="data.nama"
             :distance="jarak"
@@ -272,13 +222,13 @@ export default {
       </LMarker> -->
       <LMarker :lat-lng="defaultLocation" ref="marker" v-if="location">
         <LTooltip>You</LTooltip>
-        <LIcon :icon-url="urlTag" :icon-size="iconSize" />
+        <LIcon :icon-url="urlTag" :icon-size="[20, 35]" />
       </LMarker>
       <LCircle
         :lat-lng="defaultLocation"
         :km-radius="kmRad"
         :radius="valToRadius"
-        v-if="location"
+        v-if="hasLocation"
       />
     </LMap>
   </div>
