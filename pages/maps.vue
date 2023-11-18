@@ -280,7 +280,7 @@ const cardClick = (args) => {
           ><map-icon></map-icon
         ></Button>
         <div class="container" v-if="showList">
-          <x-icon class="tes" @click="showList = !showList"></x-icon>
+          <x-icon class="close-icon" @click="showList = !showList"></x-icon>
           <h4>Nama BTS - Jarak</h4>
 
           <div class="list">
@@ -297,7 +297,6 @@ const cardClick = (args) => {
             :distance="itemCard.jarak"
             v-if="listState"
           />
-          >
         </div>
       </LControl>
       <LControl position="bottomleft"
@@ -337,7 +336,21 @@ const cardClick = (args) => {
   height: 85vh;
   width: 75vw;
 }
-.tes {
+@media (max-width: 768px) {
+  .map-container {
+    height: 75vh;
+    width: 85vw;
+  }
+}
+
+/* Responsive styles for smartphones */
+@media (max-width: 480px) {
+  .map-container {
+    height: 75vh;
+    width: 90vw;
+  }
+}
+.close-icon {
   padding: 5px;
   cursor: pointer;
   position: absolute;
