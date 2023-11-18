@@ -1,15 +1,17 @@
 <template>
-  <!-- <div class="card">
+  <div class="card">
     <div class="card-content">
-      <h2>{{ title }}</h2>
-      <p>{{ jarak }}</p>
+      <h4>Keterangan</h4>
+      <h4>BTS - {{ title }}</h4>
+      <p>Daerah {{ city }}</p>
+      <p>Lokasi saat ini dengan BTS - {{ title }} {{ distance }} km</p>
     </div>
-  </div> -->
-  <v-card class="card">
-    <v-card-title>{{ title }}</v-card-title>
-    <v-card-subtitle>{{ city }}</v-card-subtitle>
-    <v-card-text>{{ distance }}</v-card-text>
-  </v-card>
+  </div>
+  <!-- <v-card class="card">
+    <v-card-text>BTS - {{ title }}</v-card-text>
+    <v-card-text>Daerah {{ city }}</v-card-text>
+    <v-card-text>Jarak saat ini ke lokasi {{ distance }} km</v-card-text>
+  </v-card> -->
 </template>
 <script>
 export default {
@@ -23,27 +25,14 @@ export default {
 <style scoped>
 /* Card Styles */
 .card {
+  margin-top: 10px;
+  background-color: #fdfdfd;
   width: 300px;
-
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 15px;
-
-  overflow: hidden;
-}
-.card:hover {
-  transform: scale(1.05);
-}
-.card-content {
   padding: 15px;
+  cursor: pointer;
 }
-
-.card h2 {
-  font-size: 15px;
-  margin: 0;
-}
-
-.card p {
-  font-size: 16px;
-  margin: 10px 0;
+h4,
+p {
+  margin-bottom: 10px;
 }
 </style>
