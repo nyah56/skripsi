@@ -2,9 +2,10 @@
 import Button from '@/components/maps/Button.vue';
 import Loading from '@/components/maps/Loading.vue';
 import Card from '@/components/maps/Card.vue';
-import { CurrentLocationIcon, XIcon, MapIcon } from 'vue-tabler-icons';
+import { CurrentLocationIcon, XIcon, ListIcon } from 'vue-tabler-icons';
 import { collection, getDocs } from 'firebase/firestore';
 import { onMounted, ref, computed, watch } from 'vue';
+
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 
 const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" collection
@@ -49,7 +50,24 @@ const btsData = ref([]); // ref For Fetching
 watch(btsData, (newVal) => {
   updateData(newVal);
 });
+// const good = ref('#00dd2c');
+// const ok = ref('#f7da02');
+// const bad = ref('#ef1404');
 
+const statusAllBTS = (data) => {
+  let colorStatus, msgStatus;
+  if (data <= 10) {
+    colorStatus = '#00dd2c';
+    msgStatus = 'Good';
+  } else if (data > 10 && data < 30) {
+    colorStatus = '#f7da02';
+    msgStatus = 'OK';
+  } else {
+    colorStatus = '#ef1404';
+    msgStatus = 'Bad';
+  }
+  return { color: colorStatus, msg: msgStatus };
+};
 const updateData = (data) => {
   btsCalc.value = data.map((item) => ({
     id_bts: item.id_bts,
@@ -113,6 +131,7 @@ const hasLocation = ref(false);
 const defaultPosition = computed(() => {
   return hasLocation.value ? 'primary' : 'secondary';
 });
+
 const location = ref(null);
 const gettingLocation = ref(false);
 const errorStr = ref(null);
@@ -228,11 +247,14 @@ const geocodeAndSetMarker = async ({ 0: lat, 1: lng }) => {
 const itemCard = ref();
 const coordForLine = ref([[], []]);
 const listState = ref(false);
+// const good = ref('#00dd2c');
 const cardClick = (args) => {
   // console.log(args);
+  showList.value = false;
   const towerData = btsCalc.value;
   listState.value = true;
   const selectedItem = towerData.find((item) => item.id_bts === args);
+  statusBTS(selectedItem);
   console.log(selectedItem);
   itemCard.value = selectedItem;
   if (selectedItem) {
@@ -248,6 +270,22 @@ const cardClick = (args) => {
     geocodeAndSetMarker(koordinat);
     // mappingBtsCalc();
   }
+};
+
+const statusColor = ref();
+const statusText = ref();
+const statusBTS = (data) => {
+  if (data.jarak <= 10) {
+    statusColor.value = '#00dd2c';
+    statusText.value = 'Good';
+  } else if (data.jarak > 10 && data.jarak < 30) {
+    statusColor.value = '#f7da02';
+    statusText.value = 'OK';
+  } else {
+    statusColor.value = '#ef1404';
+    statusText.value = 'Bad';
+  }
+  // return
 };
 </script>
 <template>
@@ -277,7 +315,7 @@ const cardClick = (args) => {
           :type="primary"
           @click="showList = true"
           v-if="hasLocation && !showList"
-          ><map-icon></map-icon
+          ><ListIcon></ListIcon
         ></Button>
         <div class="container" v-if="showList">
           <x-icon class="close-icon" @click="showList = !showList"></x-icon>
@@ -287,6 +325,9 @@ const cardClick = (args) => {
             <ul>
               <li v-for="data in btsCalc" @click="cardClick(data.id_bts)">
                 <p>{{ data.nama }} - {{ data.jarak }} km</p>
+                <v-chip :color="statusAllBTS(data.jarak).color">{{
+                  statusAllBTS(data.jarak).msg
+                }}</v-chip>
               </li>
             </ul>
           </div>
@@ -295,6 +336,8 @@ const cardClick = (args) => {
             :title="itemCard.nama"
             :city="cityName"
             :distance="itemCard.jarak"
+            :status="statusText"
+            :status-color="statusColor"
             v-if="listState"
           />
         </div>
@@ -359,6 +402,7 @@ const cardClick = (args) => {
 }
 .container {
   background-color: #fdfdfd;
+  margin-bottom: 5px;
 }
 .list {
   display: flex;

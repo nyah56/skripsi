@@ -1,26 +1,27 @@
 <template>
   <div class="card">
     <div class="card-content">
-      <h4>Keterangan</h4>
+      <h4>Info</h4>
       <h4>BTS - {{ title }}</h4>
-      <p>Daerah {{ city }}</p>
+      <p><strong>Daerah </strong>: {{ city }}</p>
+      <!-- <p><blockquote></p> -->
       <p>Lokasi saat ini dengan BTS - {{ title }} {{ distance }} km</p>
+      <p class="status">Status BTS berdasarkan jarak:</p>
+      <v-chip :color="statusColor">{{ status }}</v-chip>
     </div>
   </div>
-  <!-- <v-card class="card">
-    <v-card-text>BTS - {{ title }}</v-card-text>
-    <v-card-text>Daerah {{ city }}</v-card-text>
-    <v-card-text>Jarak saat ini ke lokasi {{ distance }} km</v-card-text>
-  </v-card> -->
 </template>
-<script>
-export default {
-  props: {
-    title: String,
-    city: String,
-    distance: Number,
-  },
-};
+<script setup>
+// const good = ref('#00dd2c');
+// const ok = ref('#f7da02');
+// const bad = ref('#ef1404');
+defineProps({
+  title: String,
+  city: String,
+  statusColor: String,
+  status: String,
+  distance: Number,
+});
 </script>
 <style scoped>
 /* Card Styles */
@@ -29,7 +30,9 @@ export default {
   background-color: #fdfdfd;
   width: 300px;
   padding: 15px;
-  cursor: pointer;
+}
+.status {
+  margin-bottom: 5px;
 }
 h4,
 p {
