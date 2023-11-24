@@ -1,12 +1,21 @@
 <template>
   <h1>Dashboard</h1>
-  <h3>Data BTS saat ini</h3>
-  <h4>{{ BTSCount }}</h4>
+  <div class="card-container">
+    <Card title="Jumlah BTS Saat ini" :counter="BTSCount">
+      <BroadcastIcon></BroadcastIcon>
+    </Card>
+  </div>
 </template>
 <script setup>
+import {
+  BroadcastIcon,
+  LayoutDashboardIcon,
+  LoginIcon,
+} from 'vue-tabler-icons';
 // import ProductsCard from '@/components/dashboard/ProductCards.vue'
 import { collection, getDocs } from 'firebase/firestore';
 import { onMounted } from 'vue';
+import Card from '@/components/dashboard/Card.vue';
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 
 const btsCollection = collection(firestore, 'bts');
@@ -32,3 +41,10 @@ onMounted(() => {
   fetchDataBTS();
 });
 </script>
+<style scoped>
+.card-container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+}
+</style>

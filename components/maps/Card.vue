@@ -4,10 +4,16 @@
       <h4>Info</h4>
       <h4>BTS - {{ title }}</h4>
       <p><strong>Daerah </strong>: {{ city }}</p>
-      <!-- <p><blockquote></p> -->
-      <p>Lokasi saat ini dengan BTS - {{ title }} {{ distance }} km</p>
-      <p class="status">Status BTS berdasarkan jarak:</p>
-      <v-chip :color="statusColor">{{ status }}</v-chip>
+
+      <p>Lokasi saat ini dengan BTS {{ title }} {{ distance }} km</p>
+      <div class="list-item">
+        <p class="status">Jarak BTS dengan lokasi:</p>
+        <v-chip class="chip" :color="statusColor">{{ status }}</v-chip>
+      </div>
+      <p>Total Layanan :{{ capacity }} Mb</p>
+      <p>Layanan Terpakai :{{ usedCapacity }} Mb</p>
+      <p>Sisa Layanan : {{ diff }} Mb</p>
+      <p>Jumlah Pelanggan : {{ customer }}</p>
     </div>
   </div>
 </template>
@@ -21,6 +27,10 @@ defineProps({
   statusColor: String,
   status: String,
   distance: Number,
+  capacity: Number,
+  usedCapacity: Number,
+  customer: Number,
+  diff: Number,
 });
 </script>
 <style scoped>
@@ -28,14 +38,20 @@ defineProps({
 .card {
   margin-top: 10px;
   background-color: #fdfdfd;
-  width: 300px;
+  width: 240px;
   padding: 15px;
 }
 .status {
-  margin-bottom: 5px;
+  margin-right: 5px;
+  padding-top: 6px;
 }
+.list-item {
+  display: flex;
+  flex-direction: row;
+}
+
 h4,
 p {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 </style>

@@ -17,6 +17,7 @@ const zoom = ref(36);
 // const jarak = ref(100);
 const kmRad = ref(1);
 const showList = ref(false);
+const stateMap = ref(false);
 // converting km to Pixel for Radius on Lcircle
 const valToRadius = computed(() => {
   const scalePerPixel = 0.001; // Example scale factor (adjust as needed)
@@ -39,7 +40,7 @@ const valToRadius = computed(() => {
 // };
 onMounted(() => {
   fetchData();
-  geocodeAndSetMarker();
+  // geocodeAndSetMarker();
 });
 // fetch from osm coor to object
 const btsLocation = ref([]);
@@ -48,11 +49,8 @@ const btsLocation = ref([]);
 const isLoad = ref(true);
 const btsData = ref([]); // ref For Fetching
 watch(btsData, (newVal) => {
-  updateData(newVal);
+  mappingBTSCalc(newVal);
 });
-// const good = ref('#00dd2c');
-// const ok = ref('#f7da02');
-// const bad = ref('#ef1404');
 
 const statusAllBTS = (data) => {
   let colorStatus, msgStatus;
@@ -68,11 +66,16 @@ const statusAllBTS = (data) => {
   }
   return { color: colorStatus, msg: msgStatus };
 };
-const updateData = (data) => {
+const mappingBTSCalc = (data) => {
   btsCalc.value = data.map((item) => ({
     id_bts: item.id_bts,
     nama: item.nama,
     koordinat: item.coordinates,
+    kapasitas: item.kapasitas,
+    layanan_terpakai: item.layanan_terpakai,
+    sisa_layanan: item.sisa_layanan,
+    jml_pelanggan: item.jml_pelanggan,
+
     // lat2: item.coordinates[0],
     // lon2: item.coordinates[1],
     jarak: getDistanceFromLatLonInKm(
@@ -94,7 +97,7 @@ const fetchData = async () => {
       // Here, you can access the document data
       data.push(doc.data());
     });
-
+    // console.table(data);
     mappingBtsData(data);
     // mappingBtsCalc(data);
     isLoad.value = false;
@@ -105,20 +108,33 @@ const fetchData = async () => {
 };
 const mappingBtsData = (data) => {
   const modifiedData = data.map((item) => {
-    const { nama_bts, alamat, koordinat, id_bts } = item;
+    const {
+      layanan_terpakai,
+      kapasitas,
+      jml_pelanggan,
+      nama_bts,
+      alamat,
+      koordinat,
+      id_bts,
+    } = item;
     const coordinates = [koordinat.latitude, koordinat.longitude];
 
     // console.log(lat1);
+    const sisa_layanan = kapasitas - layanan_terpakai;
     return {
       id_bts,
       nama: nama_bts,
       alamat,
       coordinates,
+      kapasitas,
+      layanan_terpakai,
+      sisa_layanan,
+      jml_pelanggan,
     };
   });
 
   btsData.value = modifiedData;
-  // console.log('asd', modifiedData);
+  console.table(btsData.value);
 };
 
 // hasLocation: false,
@@ -151,14 +167,15 @@ const getLocation = async (options) => {
     );
   });
 };
-watch(location, () => {
-  updateData(btsData.value);
+watch(stateMap, () => {
+  mappingBTSCalc(btsData.value);
 });
+
 const locateMe = async () => {
-  gettingLocation.value = true;
+  // gettingLocation.value = true;
   try {
     hasLocation.value = true;
-    gettingLocation.value = false;
+    // gettingLocation.value = false;
     const options = {
       enableHighAccuracy: true,
       timeout: 10000,
@@ -179,16 +196,20 @@ const locateMe = async () => {
     // let defaultLocArr = Object.values(defaultLocation.value);
     defaultLocation.value.lat = location.value.coords.latitude;
     defaultLocation.value.lng = location.value.coords.longitude;
-
+    if (gettingLocation.value) {
+      coordForLine.value[0][0] = defaultLocation.value.lat;
+      coordForLine.value[0][1] = defaultLocation.value.lng; //updating whwen line rendered
+    }
     let lat = defaultLocation.value.lat;
     let long = defaultLocation.value.lng;
-    console.log({ lat, long });
+    stateMap.value = !stateMap.value;
+    // console.log({ lat, long });
     // console.log(btsCalc.value);
     // return [lat, long];
 
     // console.log('hai', btsCalc.value);
   } catch (e) {
-    gettingLocation.value = false;
+    // gettingLocation.value = false;
     errorStr.value = e.message;
   }
 };
@@ -248,14 +269,25 @@ const itemCard = ref();
 const coordForLine = ref([[], []]);
 const listState = ref(false);
 // const good = ref('#00dd2c');
+// watch(itemCard, (oldVal, newVal) => {
+//   console.log('old', oldVal);
+//   console.log('new', newVal);
+// });
+const itemSelected = ref();
+const searchById = (data, args) => {
+  return data.find((item) => item.id_bts === args);
+};
 const cardClick = (args) => {
   // console.log(args);
+  itemSelected.value = args;
+  // console.log(stateMap.value);
+  gettingLocation.value = true;
   showList.value = false;
-  const towerData = btsCalc.value;
+
   listState.value = true;
-  const selectedItem = towerData.find((item) => item.id_bts === args);
+  const selectedItem = searchById(btsCalc.value, args);
   statusBTS(selectedItem);
-  console.log(selectedItem);
+  // console.log(selectedItem);
   itemCard.value = selectedItem;
   if (selectedItem) {
     const koordinat = selectedItem.koordinat;
@@ -266,8 +298,9 @@ const cardClick = (args) => {
     // defaultLocation.value.lat = k  oordinat[0];
     // defaultLocation.value.lng = koordinat[1];
     // console.log(tes.value);
-    locateMe();
+
     geocodeAndSetMarker(koordinat);
+    stateMap.value = !stateMap.value;
     // mappingBtsCalc();
   }
 };
@@ -287,20 +320,40 @@ const statusBTS = (data) => {
   }
   // return
 };
+const updateMe = (e) => {
+  defaultLocation.value.lat = e.target.getLatLng().lat;
+  defaultLocation.value.lng = e.target.getLatLng().lng;
+  if (gettingLocation.value) {
+    coordForLine.value[0][0] = defaultLocation.value.lat;
+    coordForLine.value[0][1] = defaultLocation.value.lng;
+    // const selectedItem = searchById(btsCalc.value, itemSelected.value);
+    // itemCard.value = selectedItem;
+  }
+  stateMap.value = !stateMap.value;
+};
+watch(btsCalc, () => {
+  if (gettingLocation.value) {
+    // coordForLine.value[0][0] = defaultLocation.value.lat;
+    // coordForLine.value[0][1] = defaultLocation.value.lng;
+    const selectedItem = searchById(btsCalc.value, itemSelected.value);
+    statusBTS(selectedItem);
+    itemCard.value = selectedItem;
+  }
+});
 </script>
 <template>
   <!-- <h1>{{ isLoad }}</h1>
   <uL v-for="data in btsData">
     <li>{{ data.coordinates }}</li>
   </uL> -->
-
-  <div class="map-container">
+  <!-- <h4>{{ defaultLocation }}</h4> -->
+  <div class="map-content">
     <Loading v-if="isLoad">Loading Data BTS...</Loading>
     <LMap
       ref="map"
       :zoom="zoom"
       :center="defaultLocation"
-      :key="location"
+      :key="stateMap"
       v-else
     >
       <LTileLayer
@@ -317,29 +370,53 @@ const statusBTS = (data) => {
           v-if="hasLocation && !showList"
           ><ListIcon></ListIcon
         ></Button>
-        <div class="container" v-if="showList">
-          <x-icon class="close-icon" @click="showList = !showList"></x-icon>
-          <h4>Nama BTS - Jarak</h4>
-
-          <div class="list">
-            <ul>
-              <li v-for="data in btsCalc" @click="cardClick(data.id_bts)">
-                <p>{{ data.nama }} - {{ data.jarak }} km</p>
-                <v-chip :color="statusAllBTS(data.jarak).color">{{
-                  statusAllBTS(data.jarak).msg
-                }}</v-chip>
-              </li>
-            </ul>
+        <div v-if="showList">
+          <div class="action-section">
+            <x-icon class="close-icon" @click="showList = !showList"></x-icon>
           </div>
-
-          <Card
-            :title="itemCard.nama"
-            :city="cityName"
-            :distance="itemCard.jarak"
-            :status="statusText"
-            :status-color="statusColor"
-            v-if="listState"
-          />
+          <div class="container">
+            <div class="tableFixHead">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nama BTS</th>
+                    <th>Jarak</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    :class="
+                      'scrollable ' +
+                      (data.id_bts == itemSelected ? 'selected' : '')
+                    "
+                    v-for="data in btsCalc"
+                    @click="cardClick(data.id_bts)"
+                  >
+                    <td>{{ data.nama }}</td>
+                    <td>{{ data.jarak }} km</td>
+                    <td>
+                      <v-chip :color="statusAllBTS(data.jarak).color">{{
+                        statusAllBTS(data.jarak).msg
+                      }}</v-chip>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <Card
+              :title="itemCard.nama"
+              :city="cityName"
+              :distance="itemCard.jarak"
+              :status="statusText"
+              :status-color="statusColor"
+              :capacity="itemCard.kapasitas"
+              :used-capacity="itemCard.layanan_terpakai"
+              :diff="itemCard.sisa_layanan"
+              :customer="itemCard.jml_pelanggan"
+              v-if="listState"
+            />
+          </div>
         </div>
       </LControl>
       <LControl position="bottomleft"
@@ -361,7 +438,13 @@ const statusBTS = (data) => {
         color="red"
         v-if="hasLocation"
       ></LPolyline>
-      <LMarker :lat-lng="defaultLocation" ref="marker" v-if="location">
+      <LMarker
+        :lat-lng="defaultLocation"
+        ref="marker"
+        v-if="hasLocation"
+        draggable="true"
+        @dragend="updateMe"
+      >
         <LTooltip>You</LTooltip>
         <LIcon :icon-url="urlTag" :icon-size="[20, 35]" />
       </LMarker>
@@ -375,57 +458,96 @@ const statusBTS = (data) => {
   </div>
 </template>
 <style scoped>
-.map-container {
+.map-content {
   height: 85vh;
   width: 75vw;
 }
+/* /* @media (max-width: 801px) {
+  .map-content {
+    height: 75vh;
+    width: 80vw;
+  }
+}
 @media (max-width: 768px) {
-  .map-container {
+  .map-content {
+    height: 75vh;
+    width: 75vw;
+  }
+} */
+@media (max-width: 600px) {
+  .map-content {
     height: 75vh;
     width: 85vw;
   }
 }
 
-/* Responsive styles for smartphones */
 @media (max-width: 480px) {
-  .map-container {
+  .map-content {
     height: 75vh;
     width: 90vw;
   }
 }
+@media (max-width: 320px) {
+  .map-content {
+    height: 75vh;
+    width: 85vw;
+  }
+}
+.action-section {
+  height: 10px;
+  background-color: #3d3d3d;
+  padding: 11px;
+}
 .close-icon {
-  padding: 5px;
+  padding: 3px;
   cursor: pointer;
   position: absolute;
   top: 0;
   right: 0;
+  color: #f7f6f6;
+  height: 22px;
+  width: 22px;
+}
+.close-icon:hover {
+  background-color: red;
 }
 .container {
   background-color: #fdfdfd;
   margin-bottom: 5px;
 }
-.list {
-  display: flex;
-  flex-direction: column;
 
+.tableFixHead {
+  overflow: auto;
+  height: 200px;
+}
+.tableFixHead thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   padding: 10px;
-  min-height: 200px;
-  overflow-y: auto; /* This property makes the content scrollable vertically */
-  max-height: 300px;
+  background-color: #045b99;
+  color: #fdfdfd;
+}
+
+table {
+  padding: 10px;
+  border-collapse: collapse;
+}
+
+td {
+  text-align: center;
+  padding: 10px;
 }
 h4 {
-  padding: 15px;
+  padding: 10px;
 }
 
-ul > li {
-  list-style: none;
+tr:hover:not(thead tr) {
+  background-color: #f7f6f6;
+  /* cursor: pointer; */
 }
 
-li {
-  padding: 5px;
-  margin-bottom: 5px;
-}
-li:hover {
+.selected {
   background-color: #f7f6f6;
 }
 </style>

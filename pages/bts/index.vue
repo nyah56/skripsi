@@ -1,6 +1,12 @@
 <template>
   <Loading v-if="isLoad">Loading Data BTS...</Loading>
-  <h3 class="mb-2 pl-3">Data BTS</h3>
+  <div class="heading mb-5 pl-3">
+    <h3 class="">Data BTS</h3>
+    <NuxtLink to="/bts/add" class="addBtn"
+      >New <CirclePlusIcon class="ml-2"></CirclePlusIcon
+    ></NuxtLink>
+  </div>
+
   <v-table class="month-table">
     <thead>
       <tr>
@@ -25,32 +31,27 @@
         </td>
         <td>
           <edit-icon class="edit mr-2"></edit-icon>
-          <TrashIcon class="delete"></TrashIcon>
+          <TrashIcon class="delete" @click="deleteBTS(item.id_bts)"></TrashIcon>
         </td>
       </tr>
     </tbody>
   </v-table>
 </template>
-<style scoped>
-.edit {
-  color: #fdd700;
-}
-.edit:hover {
-  color: #faea92;
-}
-.delete {
-  color: #ee0909;
-}
-.delete:hover {
-  color: #fa9292;
-}
-</style>
+
 <script setup>
 import Loading from '@/components/maps/Loading.vue';
 import { EditIcon, TrashIcon } from 'vue-tabler-icons';
-import { collection, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  getDoc,
+  query,
+  where,
+} from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
-
+import { CirclePlusIcon } from 'vue-tabler-icons';
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 
 const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" collection
@@ -72,24 +73,76 @@ const getBTSData = async () => {
     });
 
     const modifiedData = data.map((item) => {
-      const { nama_bts, alamat, koordinat, id_bts } = item;
-      const coordinates = [koordinat.latitude, koordinat.longitude];
+      const { nama_bts, alamat, id_bts } = item;
+      // const coordinates = [koordinat.latitude, koordinat.longitude];
       const numericPart = parseInt(id_bts.slice(3), 10);
       return {
         id_bts,
         nama: nama_bts,
         alamat,
-        coordinates,
+        // coordinates,
         numericPart,
       };
     });
 
     // btsData.value = modifiedData;
     btsData.value = modifiedData.sort((a, b) => a.numericPart - b.numericPart);
+    // console.table(btsData.value);
     isLoad.value = false;
     // console.log('array', btsData.value);
   } catch (error) {
     console.error('Error getting data:', error);
   }
 };
+const deleteBTS = async (id) => {
+  try {
+    const q = query(btsCollection, where('id_bts', '==', id));
+    const querySnapshot = await getDocs(q);
+    const documentId = querySnapshot.docs[0].id;
+    const btsRef = doc(firestore, 'bts', documentId);
+    const snapshot = await getDoc(btsRef);
+
+    if (snapshot.exists()) {
+      console.log('Document data:', snapshot.data());
+      await deleteDoc(btsRef);
+      // console.log(`Document with ID ${id} deleted successfully`);
+      btsData.value = btsData.value.filter((item) => item.id_bts !== id);
+    } else {
+      console.log(`Document with ID ${id} does not exist.`);
+    }
+  } catch (error) {
+    console.error('Error deleting data:', error);
+  }
+};
 </script>
+<style scoped>
+.addBtn {
+  text-decoration: none;
+  background-color: #5d87ff;
+  color: beige;
+  border-radius: 5px;
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+}
+.addBtn:hover {
+  background-color: #567de9;
+}
+.heading {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.edit {
+  color: #fdd700;
+}
+.edit:hover {
+  color: #faea92;
+}
+.delete {
+  color: #ee0909;
+}
+.delete:hover {
+  color: #fa9292;
+}
+</style>

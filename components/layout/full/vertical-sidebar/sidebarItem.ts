@@ -1,11 +1,7 @@
 import {
   BroadcastIcon,
-  CopyIcon,
   LayoutDashboardIcon,
   LoginIcon,
-  MoodHappyIcon,
-  TypographyIcon,
-  UserPlusIcon,
 } from 'vue-tabler-icons';
 
 export interface menu {
@@ -42,6 +38,11 @@ const sidebarItem: menu[] = [
     to: '/bts/',
   },
   // {
+  //   title: 'Tambah Data BTS',
+  //   icon: BroadcastIcon,
+  //   to: '/bts/add',
+  // },
+  // {
   //   title: 'Shadow',
   //   icon: CopyIcon,
   //   to: '/ui/shadow',
@@ -52,11 +53,11 @@ const sidebarItem: menu[] = [
     icon: LoginIcon,
     to: '/auth/login',
   },
-  // {
-  //   title: 'Register',
-  //   icon: UserPlusIcon,
-  //   to: '/auth/register',
-  // },
+  {
+    title: 'Register',
+    icon: LoginIcon,
+    to: '/auth/register',
+  },
   // { header: 'Extra' },
   // {
   //   title: 'Icons',
