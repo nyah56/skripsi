@@ -1,9 +1,10 @@
 <template>
+  <Loading v-if="isLoad">Loading Data BTS...</Loading>
   <v-col cols="2">
     <NuxtLink to="/bts/">Back</NuxtLink>
   </v-col>
   <div class="container elevation-4">
-    <h2 class="mb-5">Tambah Data BTS</h2>
+    <h2 class="mb-5">Ubah Data BTS</h2>
     <form @submit.prevent="handleSubmit">
       <v-row class="d-flex mb-3">
         <v-col cols="12">
@@ -115,7 +116,7 @@
             color="primary"
             size="large"
             block
-            @click="handleSubmit"
+            @click="handleSubmit(params)"
             ><span v-if="!isLoad">Submit</span>
             <v-progress-circular indeterminate v-else></v-progress-circular>
           </v-btn>
@@ -127,15 +128,27 @@
 
 <script setup>
 import { MapIcon } from 'vue-tabler-icons';
-import { ref, inject } from 'vue';
-import { collection, addDoc, getDocs, GeoPoint } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
+import Loading from '@/components/maps/Loading.vue';
+import { ref, inject, onMounted } from 'vue';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  getDoc,
+  GeoPoint,
+  query,
+  where,
+  doc,
+} from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
 const router = useRouter();
+const params = router.currentRoute.value.params.id; //get /bts/xxxx => xxxx
 const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that provides Firestore
 const btsCollection = collection(firestore, 'bts');
 const zoom = ref(36);
 const urlTag = ref('/red-icon.png');
 const defaultLocation = ref([-7.2928347, 112.721984]);
-const isLoad = ref(false);
+const isLoad = ref(true);
 const showModal = ref(false);
 const nama = ref('');
 const alamat = ref('');
@@ -144,6 +157,10 @@ const jml_pelanggan = ref('');
 const layanan_terpakai = ref('');
 const lat = ref(0);
 const lon = ref(0);
+
+onMounted(() => {
+  editBTS(params);
+});
 const openModal = () => {
   showModal.value = true;
   console.log('Click');
@@ -151,50 +168,40 @@ const openModal = () => {
 const closeModal = () => {
   showModal.value = false;
 };
-const getLastData = async () => {
-  try {
-    const data = [];
-    const querySnapshot = await getDocs(btsCollection);
-
-    querySnapshot.forEach((doc) => {
-      // Here, you can access the document data
-      data.push(doc.data());
-    });
-
-    const idCount = data.map((item) => {
-      const { id_bts } = item;
-      const numericPart = parseInt(id_bts.slice(3), 10);
-      return {
-        numericPart,
-      };
-    });
-
-    // btsData.value = modifiedData;
-    const lastID = idCount.sort((b, a) => a.numericPart - b.numericPart);
-    // const newId = 'bts' + lastID[0].numericPart.toString();
-    const newId = lastID[0].numericPart + 1;
-    const idString = 'bts' + newId;
-    // console.log(typeof idString);
-    // console.table(btsData.value);
-    // isLoad.value = false;
-    // console.log('array', btsData.value);
-    return idString;
-  } catch (error) {
-    console.error('Error getting data:', error);
-  }
+const editBTS = async (id) => {
+  const q = query(btsCollection, where('id_bts', '==', id));
+  const querySnapshot = await getDocs(q);
+  const documentId = querySnapshot.docs[0].id;
+  const btsRef = doc(firestore, 'bts', documentId);
+  const snapshot = await getDoc(btsRef);
+  const data = snapshot.data();
+  nama.value = data.nama_bts || '';
+  alamat.value = data.alamat || '';
+  kapasitas.value = data.kapasitas || '';
+  layanan_terpakai.value = data.layanan_terpakai || '';
+  jml_pelanggan.value = data.jml_pelanggan || '';
+  lat.value = data.koordinat ? data.koordinat.latitude : 0;
+  lon.value = data.koordinat ? data.koordinat.longitude : 0;
+  defaultLocation.value[0] = data.koordinat ? data.koordinat.latitude : 0;
+  defaultLocation.value[1] = data.koordinat ? data.koordinat.longitude : 0;
+  isLoad.value = false;
 };
-const handleSubmit = async () => {
+
+const handleSubmit = async (id) => {
   // Get a Firestore reference to the 'bts' collection
-  const btsCollection = collection(firestore, 'bts');
 
   const inputKoordinat = new GeoPoint(lat.value, lon.value);
+  const q = query(btsCollection, where('id_bts', '==', id));
+  const querySnapshot = await getDocs(q);
+  const documentId = querySnapshot.docs[0].id;
+  const btsRef = doc(firestore, 'bts', documentId);
 
   // id.value = await getLastData();
   // console.log(id.value);
   // Create a separate object with id and nama properties
   isLoad.value = true;
   const dataObject = {
-    id_bts: await getLastData(),
+    id_bts: params,
     nama_bts: nama.value,
     alamat: alamat.value,
     kapasitas: parseInt(kapasitas.value),
@@ -205,7 +212,8 @@ const handleSubmit = async () => {
 
   try {
     // Add a new document to the 'bts' collection with the input data
-    await addDoc(btsCollection, dataObject);
+    // await addDoc(btsCollection, dataObject);
+    await updateDoc(btsRef, dataObject);
 
     // Optionally, you can reset the form fields after successful submission
 

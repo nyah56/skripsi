@@ -30,17 +30,37 @@
           <h6 class="text-body-1 text-muted">{{ item.alamat }}</h6>
         </td>
         <td>
-          <edit-icon class="edit mr-2"></edit-icon>
-          <TrashIcon class="delete" @click="deleteBTS(item.id_bts)"></TrashIcon>
+          <NuxtLink :to="`/bts/${item.id_bts}`"
+            ><edit-icon class="edit mr-2"></edit-icon
+          ></NuxtLink>
+          <TrashIcon class="delete" @click="showModal(item.id_bts)">
+            ></TrashIcon
+          >
         </td>
       </tr>
     </tbody>
   </v-table>
+  <v-dialog v-model="isShow" width="400" v-if="isShow">
+    <v-card>
+      <v-card-title class="text-h5"> Yakin ingin Menghapus Data? </v-card-title>
+      <v-card-text>Data BTS {{ deleteData }} akan dihapus</v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="green-darken-1" variant="text" @click="isShow = false">
+          Tidak
+        </v-btn>
+        <v-btn :color="red" variant="text" @click="deleteBTS(deleteData)">
+          Iya
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import Loading from '@/components/maps/Loading.vue';
 import { EditIcon, TrashIcon } from 'vue-tabler-icons';
+import deleteConfirm from '@/components/bts/deleteConfirm.vue';
 import {
   collection,
   getDocs,
@@ -52,12 +72,20 @@ import {
 } from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
+
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
+const deleteData = ref(null);
+const isShow = ref(false);
+const red = ref('#D50000');
+const showModal = (item) => {
+  deleteData.value = item;
+  isShow.value = true;
+};
 
 const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" collection
 
 const btsData = ref([]); // A ref to store the data
-const btsCalc = ref([]);
+
 const isLoad = ref(true);
 onMounted(() => {
   getBTSData();
@@ -94,6 +122,7 @@ const getBTSData = async () => {
     console.error('Error getting data:', error);
   }
 };
+
 const deleteBTS = async (id) => {
   try {
     const q = query(btsCollection, where('id_bts', '==', id));
@@ -106,6 +135,7 @@ const deleteBTS = async (id) => {
       console.log('Document data:', snapshot.data());
       await deleteDoc(btsRef);
       // console.log(`Document with ID ${id} deleted successfully`);
+      isShow.value = false;
       btsData.value = btsData.value.filter((item) => item.id_bts !== id);
     } else {
       console.log(`Document with ID ${id} does not exist.`);

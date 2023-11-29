@@ -1,5 +1,10 @@
 <template>
-  <button class="custom-button" :class="buttonClass" @click="onClick">
+  <button
+    class="custom-button"
+    :class="buttonClass"
+    @click="onClick"
+    type="button"
+  >
     <span>
       <slot></slot>
     </span>
@@ -29,6 +34,7 @@ export default {
         'btn-primary': this.type === 'primary',
         'btn-secondary': this.type === 'secondary',
         'btn-disabled': this.type === 'disabled',
+        'btn-custom': this.type === 'custom',
       };
     },
     iconClass() {
@@ -65,6 +71,10 @@ export default {
 .btn-secondary {
   background-color: #fff;
   color: #333;
+}
+.btn-custom {
+  background-color: #5d87ff;
+  color: #fff;
 }
 
 .btn-disabled {
