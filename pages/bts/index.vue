@@ -60,7 +60,7 @@
 <script setup>
 import Loading from '@/components/maps/Loading.vue';
 import { EditIcon, TrashIcon } from 'vue-tabler-icons';
-import deleteConfirm from '@/components/bts/deleteConfirm.vue';
+
 import {
   collection,
   getDocs,
