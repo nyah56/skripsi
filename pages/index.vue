@@ -1,50 +1,30 @@
-<template>
-  <h1>Dashboard</h1>
-  <div class="card-container">
-    <Card title="Jumlah BTS Saat ini" :counter="BTSCount">
-      <BroadcastIcon></BroadcastIcon>
-    </Card>
-  </div>
-</template>
-<script setup>
-import {
-  BroadcastIcon,
-  LayoutDashboardIcon,
-  LoginIcon,
-} from 'vue-tabler-icons';
-// import ProductsCard from '@/components/dashboard/ProductCards.vue'
-import { collection, getDocs } from 'firebase/firestore';
-import { onMounted } from 'vue';
-import Card from '@/components/dashboard/Card.vue';
-const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
-
-const btsCollection = collection(firestore, 'bts');
-// const snapshot = await getDocs(btsCollection);
-const BTSCount = ref();
-
-const fetchDataBTS = async () => {
-  try {
-    const querySnapshot = await getDocs(btsCollection);
-    BTSCount.value = querySnapshot.size;
-
-    // console.log(data.length);
-
-    // mappingBtsData(data);
-    // mappingBtsCalc(data);
-    // isLoad.value = false;
-    // console.log('array', btsData.value);
-  } catch (error) {
-    console.error('Error getting data:', error);
-  }
-};
-onMounted(() => {
-  fetchDataBTS();
+<script setup lang="ts">
+/*-For Set Blank Layout-*/
+definePageMeta({
+  layout: 'blank',
 });
 </script>
-<style scoped>
-.card-container {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: row;
-}
-</style>
+<template>
+  <div class="authentication">
+    <v-container fluid class="pa-3">
+      <v-row class="h-100vh d-flex justify-center align-center">
+        <v-col cols="12" lg="4" xl="3" class="d-flex align-center">
+          <v-card
+            rounded="md"
+            elevation="10"
+            class="px-sm-1 px-0 withbg mx-auto"
+            max-width="500"
+          >
+            <v-card-item class="pa-sm-8">
+              <div class="d-flex justify-center py-4">
+                <LayoutFullLogo />
+              </div>
+
+              <AuthLoginForm />
+            </v-card-item>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
+</template>

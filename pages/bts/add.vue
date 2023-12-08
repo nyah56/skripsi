@@ -115,6 +115,7 @@
             color="primary"
             size="large"
             block
+            :disabled="isLoad"
             @click="handleSubmit"
             ><span v-if="!isLoad">Submit</span>
             <v-progress-circular indeterminate v-else></v-progress-circular>
@@ -151,6 +152,7 @@ const openModal = () => {
 const closeModal = () => {
   showModal.value = false;
 };
+//return btsxx=>xx
 const getLastData = async () => {
   try {
     const data = [];

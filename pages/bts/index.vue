@@ -99,6 +99,7 @@ const getBTSData = async () => {
       // Here, you can access the document data
       data.push(doc.data());
     });
+    // console.log(querySnapshot);
 
     const modifiedData = data.map((item) => {
       const { nama_bts, alamat, id_bts } = item;

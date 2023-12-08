@@ -3,7 +3,7 @@ import {
   LayoutDashboardIcon,
   LoginIcon,
 } from 'vue-tabler-icons';
-
+import { onAuthStateChanged } from 'firebase/auth';
 export interface menu {
   header?: string;
   title?: string;
@@ -24,46 +24,34 @@ const sidebarItem: menu[] = [
   {
     title: 'Dashboard',
     icon: LayoutDashboardIcon,
-    to: '/',
+    to: '/dashboard',
   },
   {
     title: 'BTS Terdekat',
     icon: BroadcastIcon,
     to: '/maps',
   },
-  { header: 'utilities' },
-  {
-    title: 'BTS',
-    icon: BroadcastIcon,
-    to: '/bts/',
-  },
-  // {
-  //   title: 'Tambah Data BTS',
-  //   icon: BroadcastIcon,
-  //   to: '/bts/add',
-  // },
-  // {
-  //   title: 'Shadow',
-  //   icon: CopyIcon,
-  //   to: '/ui/shadow',
-  // },
-  { header: 'auth' },
-  {
-    title: 'Login',
-    icon: LoginIcon,
-    to: '/auth/login',
-  },
-  {
-    title: 'Register',
-    icon: LoginIcon,
-    to: '/auth/register',
-  },
-  // { header: 'Extra' },
-  // {
-  //   title: 'Icons',
-  //   icon: MoodHappyIcon,
-  //   to: '/icons',
-  // },
 ];
+const auth = useNuxtApp().$auth;
+onAuthStateChanged(auth, (user) => {
+  if (user?.uid == 'UDGC1mLrdQN9tZT4TUSZLBJazK32') {
+    //iterasi dari collection for role
+    //collection role ada rolenya
+    sidebarItem.push(
+      { header: 'Admin' },
+      {
+        title: 'BTS',
+        icon: BroadcastIcon,
+        to: '/bts/',
+      },
+      {
+        title: 'User',
+        icon: BroadcastIcon,
+        to: '/user/',
+      }
+      // Add other admin items as needed
+    );
+  }
+});
 
 export default sidebarItem;

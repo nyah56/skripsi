@@ -134,7 +134,7 @@ const mappingBtsData = (data) => {
   });
 
   btsData.value = modifiedData;
-  console.table(btsData.value);
+  // console.table(btsData.value);
 };
 
 // hasLocation: false,
