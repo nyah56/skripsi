@@ -1,9 +1,5 @@
-import {
-  BroadcastIcon,
-  LayoutDashboardIcon,
-  LoginIcon,
-} from 'vue-tabler-icons';
-import { onAuthStateChanged } from 'firebase/auth';
+import { BroadcastIcon, LayoutDashboardIcon } from 'vue-tabler-icons';
+import { isAdminNav } from './isAdminItems';
 export interface menu {
   header?: string;
   title?: string;
@@ -32,26 +28,6 @@ const sidebarItem: menu[] = [
     to: '/maps',
   },
 ];
-const auth = useNuxtApp().$auth;
-onAuthStateChanged(auth, (user) => {
-  if (user?.uid == 'UDGC1mLrdQN9tZT4TUSZLBJazK32') {
-    //iterasi dari collection for role
-    //collection role ada rolenya
-    sidebarItem.push(
-      { header: 'Admin' },
-      {
-        title: 'BTS',
-        icon: BroadcastIcon,
-        to: '/bts/',
-      },
-      {
-        title: 'User',
-        icon: BroadcastIcon,
-        to: '/user/',
-      }
-      // Add other admin items as needed
-    );
-  }
-});
+isAdminNav(sidebarItem);
 
 export default sidebarItem;

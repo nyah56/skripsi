@@ -47,26 +47,10 @@
 </template>
 
 <script setup>
-import Loading from '@/components/maps/Loading.vue';
-import { EditIcon, TrashIcon } from 'vue-tabler-icons';
-import deleteConfirm from '@/components/bts/deleteConfirm.vue';
-
-import {
-  collection,
-  getDocs,
-  deleteDoc,
-  doc,
-  getDoc,
-  query,
-  where,
-} from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
-import { CirclePlusIcon } from 'vue-tabler-icons';
+
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
-onMounted(() => {
-  getBTSData();
-});
 async function signUpWithEmailAndPassword(email, password) {
   const auth = getAuth();
 
@@ -97,32 +81,11 @@ async function signUpWithEmailAndPassword(email, password) {
 
 // Example usage without try-catch
 
-const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
-
-const isShow = ref(false);
 const email = ref('');
 const password = ref('');
 
-const btsCollection = collection(firestore, 'users'); // Reference to the "bts" collection
-
 // const btsData = ref([]); // A ref to store the data
 
-const getBTSData = async () => {
-  const auth = getAuth();
-
-  try {
-    const data = [];
-    const querySnapshot = await getDocs(btsCollection);
-
-    querySnapshot.forEach((doc) => {
-      // Here, you can access the document data
-    });
-
-    // console.log('array', btsData.value);
-  } catch (error) {
-    console.error('Error getting data:', error);
-  }
-};
 const isLoad = ref(false);
 
 const submitForm = () => {

@@ -72,6 +72,7 @@ import {
 } from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
+import fetchData from '@/server/fetchData';
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 const deleteData = ref(null);
@@ -88,40 +89,28 @@ const btsData = ref([]); // A ref to store the data
 
 const isLoad = ref(true);
 onMounted(() => {
-  getBTSData();
+  sortBTSData();
 });
-const getBTSData = async () => {
-  try {
-    const data = [];
-    const querySnapshot = await getDocs(btsCollection);
+const sortBTSData = async () => {
+  const { data, loading } = await fetchData(btsCollection);
 
-    querySnapshot.forEach((doc) => {
-      // Here, you can access the document data
-      data.push(doc.data());
-    });
-    // console.log(querySnapshot);
+  const modifiedData = data.map((item) => {
+    const { nama_bts, alamat, id_bts } = item;
+    // const coordinates = [koordinat.latitude, koordinat.longitude];
+    const numericPart = parseInt(id_bts.slice(3), 10);
+    return {
+      id_bts,
+      nama: nama_bts,
+      alamat,
+      // coordinates,
+      numericPart,
+    };
+  });
 
-    const modifiedData = data.map((item) => {
-      const { nama_bts, alamat, id_bts } = item;
-      // const coordinates = [koordinat.latitude, koordinat.longitude];
-      const numericPart = parseInt(id_bts.slice(3), 10);
-      return {
-        id_bts,
-        nama: nama_bts,
-        alamat,
-        // coordinates,
-        numericPart,
-      };
-    });
-
-    // btsData.value = modifiedData;
-    btsData.value = modifiedData.sort((a, b) => a.numericPart - b.numericPart);
-    // console.table(btsData.value);
-    isLoad.value = false;
-    // console.log('array', btsData.value);
-  } catch (error) {
-    console.error('Error getting data:', error);
-  }
+  // btsData.value = modifiedData;
+  btsData.value = modifiedData.sort((a, b) => a.numericPart - b.numericPart);
+  // console.table(btsData.value);
+  isLoad.value = loading;
 };
 
 const deleteBTS = async (id) => {
@@ -133,7 +122,6 @@ const deleteBTS = async (id) => {
     const snapshot = await getDoc(btsRef);
 
     if (snapshot.exists()) {
-      console.log('Document data:', snapshot.data());
       await deleteDoc(btsRef);
       // console.log(`Document with ID ${id} deleted successfully`);
       isShow.value = false;

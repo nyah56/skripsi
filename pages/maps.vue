@@ -3,8 +3,9 @@ import Button from '@/components/maps/Button.vue';
 import Loading from '@/components/maps/Loading.vue';
 import Card from '@/components/maps/Card.vue';
 import { CurrentLocationIcon, XIcon, ListIcon } from 'vue-tabler-icons';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { onMounted, ref, computed, watch } from 'vue';
+import fetchData from '@/server/fetchData';
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 
@@ -24,23 +25,11 @@ const valToRadius = computed(() => {
   const pixels = kmRad.value / scalePerPixel;
   return pixels;
 });
-// const mappingBtsCalc = (data) => {
-//   const modifiedData = data.map((item) => {
-//     const { nama, id_bts } = item;
-//     // const coordinates = [koordinat.latitude, koordinat.longitude];
-//     // const lat1 = defaultLocation.value.lat;
-//     // console.log(lat1);
-//     return {
-//       id_bts,
-//       nama,
-//     };
-//   });
 
-//   btsCalc.value = modifiedData;
-// };
 onMounted(() => {
-  fetchData();
+  // fetchData(btsCollection);
   // geocodeAndSetMarker();
+  loadingBTS();
 });
 // fetch from osm coor to object
 const btsLocation = ref([]);
@@ -76,8 +65,6 @@ const mappingBTSCalc = (data) => {
     sisa_layanan: item.sisa_layanan,
     jml_pelanggan: item.jml_pelanggan,
 
-    // lat2: item.coordinates[0],
-    // lon2: item.coordinates[1],
     jarak: getDistanceFromLatLonInKm(
       defaultLocation.value.lat,
       defaultLocation.value.lng,
@@ -88,23 +75,28 @@ const mappingBTSCalc = (data) => {
 
   btsCalc.value.sort((a, b) => a.jarak - b.jarak);
 };
-const fetchData = async () => {
-  try {
-    const data = [];
-    const querySnapshot = await getDocs(btsCollection);
+// const fetchData = async () => {
+//   try {
+//     const data = [];
+//     const querySnapshot = await getDocs(btsCollection);
 
-    querySnapshot.forEach((doc) => {
-      // Here, you can access the document data
-      data.push(doc.data());
-    });
-    // console.table(data);
-    mappingBtsData(data);
-    // mappingBtsCalc(data);
-    isLoad.value = false;
-    // console.log('array', btsData.value);
-  } catch (error) {
-    console.error('Error getting data:', error);
-  }
+//     querySnapshot.forEach((doc) => {
+//       // Here, you can access the document data
+//       data.push(doc.data());
+//     });
+//     // console.table(data);
+//     mappingBtsData(data);
+//     // mappingBtsCalc(data);
+//     isLoad.value = false;
+//     // console.log('array', btsData.value);
+//   } catch (error) {
+//     console.error('Error getting data:', error);
+//   }
+// };
+const loadingBTS = async () => {
+  const { data, loading } = await fetchData(btsCollection);
+  mappingBtsData(data);
+  isLoad.value = loading;
 };
 const mappingBtsData = (data) => {
   const modifiedData = data.map((item) => {

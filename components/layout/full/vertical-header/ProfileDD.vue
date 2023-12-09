@@ -1,17 +1,23 @@
 <script setup>
 import { UserIcon, MailIcon, ListCheckIcon } from 'vue-tabler-icons';
-import { signOut } from 'firebase/auth';
-const auth = inject('auth');
+import { signOut, getAuth } from 'firebase/auth';
+const auth = getAuth();
 const router = useRouter();
+
 const logout = async () => {
+  let isLogout = false;
   try {
     await signOut(auth);
+    isLogout = true;
     // console.log('Logout');
-    router.push('/');
+    // return navigateTo('/');
     // Handle successful logout, you can redirect or update UI state here
   } catch (error) {
     // Handle logout error
     console.error(error.message);
+  }
+  if (isLogout) {
+    return navigateTo('/');
   }
 };
 </script>

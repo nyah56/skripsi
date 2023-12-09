@@ -130,6 +130,8 @@
 import { MapIcon } from 'vue-tabler-icons';
 import { ref, inject } from 'vue';
 import { collection, addDoc, getDocs, GeoPoint } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
+import fetchData from '@/server/fetchData';
+
 const router = useRouter();
 const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that provides Firestore
 const btsCollection = collection(firestore, 'bts');
@@ -154,40 +156,26 @@ const closeModal = () => {
 };
 //return btsxx=>xx
 const getLastData = async () => {
-  try {
-    const data = [];
-    const querySnapshot = await getDocs(btsCollection);
+  const { data } = await fetchData(btsCollection);
+  const idCount = data.map((item) => {
+    const { id_bts } = item;
+    const numericPart = parseInt(id_bts.slice(3), 10);
+    return {
+      numericPart,
+    };
+  });
 
-    querySnapshot.forEach((doc) => {
-      // Here, you can access the document data
-      data.push(doc.data());
-    });
+  // btsData.value = modifiedData;
+  const lastID = idCount.sort((b, a) => a.numericPart - b.numericPart);
 
-    const idCount = data.map((item) => {
-      const { id_bts } = item;
-      const numericPart = parseInt(id_bts.slice(3), 10);
-      return {
-        numericPart,
-      };
-    });
+  const newId = lastID[0].numericPart + 1;
+  const idString = 'bts' + newId;
 
-    // btsData.value = modifiedData;
-    const lastID = idCount.sort((b, a) => a.numericPart - b.numericPart);
-    // const newId = 'bts' + lastID[0].numericPart.toString();
-    const newId = lastID[0].numericPart + 1;
-    const idString = 'bts' + newId;
-    // console.log(typeof idString);
-    // console.table(btsData.value);
-    // isLoad.value = false;
-    // console.log('array', btsData.value);
-    return idString;
-  } catch (error) {
-    console.error('Error getting data:', error);
-  }
+  return idString;
 };
+
 const handleSubmit = async () => {
   // Get a Firestore reference to the 'bts' collection
-  const btsCollection = collection(firestore, 'bts');
 
   const inputKoordinat = new GeoPoint(lat.value, lon.value);
 
@@ -217,7 +205,7 @@ const handleSubmit = async () => {
     layanan_terpakai.value = '';
     jml_pelanggan.value = '';
     router.push('/bts/');
-    console.log('Data successfully sent to Firestore:', dataObject);
+    // console.log('Data successfully sent to Firestore:', dataObject);
   } catch (error) {
     console.error(dataObject);
     console.error('Error sending data to Firestore:', error.message);

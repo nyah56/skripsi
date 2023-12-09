@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const email = ref('');
 const password = ref('');
@@ -10,12 +10,6 @@ const isAuth = ref(false);
 const message = ref('');
 
 const auth = inject('auth');
-// onAuthStateChanged(auth, (user) => {
-//   if (user) {
-//     return navigateTo('/');
-//   }
-//   return navigateTo('/auth/login');
-// });
 
 const login = async (auth, email, password) => {
   try {
@@ -31,7 +25,7 @@ const login = async (auth, email, password) => {
     message.value = 'Email atau Password Salah';
 
     isLoad.value = false;
-    console.error(error.message);
+    console.log(error);
   }
 };
 const submitForm = () => {

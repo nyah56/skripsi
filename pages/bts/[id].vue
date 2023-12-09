@@ -141,6 +141,7 @@ import {
   where,
   doc,
 } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
+
 const router = useRouter();
 const params = router.currentRoute.value.params.id; //get /bts/xxxx => xxxx
 const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that provides Firestore
