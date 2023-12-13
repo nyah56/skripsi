@@ -56,7 +56,7 @@
                 mode="date"
               ></VCalendar> -->
 
-            <ClientOnly>
+            <!-- <ClientOnly>
               <DatePicker
                 v-if="isShow"
                 mode="date"
@@ -64,7 +64,7 @@
                 :onclick="formatDate"
                 v-model="datePicker"
               ></DatePicker
-            ></ClientOnly>
+            ></ClientOnly> -->
             <!-- <VueDatePicker></VueDatePicker> -->
           </v-col>
         </v-col>
@@ -111,8 +111,8 @@ import { CalendarIcon } from 'vue-tabler-icons';
 import { ref, inject, onMounted } from 'vue';
 import { collection, addDoc, getDocs, GeoPoint } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
 // import VueDatePicker from '@vuepic/vue-datepicker';
-import { Calendar, DatePicker } from 'v-calendar';
-import 'v-calendar/style.css';
+// import { Calendar, DatePicker } from 'v-calendar';
+// import 'v-calendar/style.css';
 // import '@vuepic/vue-datepicker/dist/main.css';
 const rawAuth = localStorage.getItem('uid');
 const auth = rawAuth.slice(1, -1);
