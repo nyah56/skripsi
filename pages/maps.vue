@@ -5,7 +5,7 @@ import Card from '@/components/maps/Card.vue';
 import { CurrentLocationIcon, XIcon, ListIcon } from 'vue-tabler-icons';
 import { collection } from 'firebase/firestore';
 import { onMounted, ref, computed, watch } from 'vue';
-import fetchData from '@/server/fetchData';
+// import fetchData from '@/server/fetchData';
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 
@@ -94,7 +94,7 @@ const mappingBTSCalc = (data) => {
 //   }
 // };
 const loadingBTS = async () => {
-  const { data, loading } = await fetchData(btsCollection);
+  const { data, loading } = await useFetchData(btsCollection);
   mappingBtsData(data);
   isLoad.value = loading;
 };
@@ -357,7 +357,7 @@ watch(btsCalc, () => {
 
       <LControl position="topright">
         <Button
-          :type="primary"
+          :type="defaultPosition"
           @click="showList = true"
           v-if="hasLocation && !showList"
           ><ListIcon></ListIcon
@@ -434,7 +434,7 @@ watch(btsCalc, () => {
         :lat-lng="defaultLocation"
         ref="marker"
         v-if="hasLocation"
-        draggable="true"
+        :draggable="true"
         @dragend="updateMe"
       >
         <LTooltip>You</LTooltip>

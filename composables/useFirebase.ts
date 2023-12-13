@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
 } from 'firebase/auth';
+
 export const signInUser = async (email: any, password: any) => {
   const auth = getAuth();
   const credentials = await signInWithEmailAndPassword(
@@ -31,7 +32,14 @@ export const initUser = async () => {
       router.push('/dashboard');
     } else {
       //if signed out
-
+      if (router.currentRoute.value.path == '/') {
+        router.push('/');
+        return;
+      }
+      if (router.currentRoute.value.path == '/reset') {
+        router.push('/reset');
+        return;
+      }
       router.push('/');
     }
 

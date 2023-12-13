@@ -72,7 +72,6 @@ import {
 } from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
-import fetchData from '@/server/fetchData';
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 const deleteData = ref(null);
@@ -92,7 +91,7 @@ onMounted(() => {
   sortBTSData();
 });
 const sortBTSData = async () => {
-  const { data, loading } = await fetchData(btsCollection);
+  const { data, loading } = await useFetchData(btsCollection);
 
   const modifiedData = data.map((item) => {
     const { nama_bts, alamat, id_bts } = item;

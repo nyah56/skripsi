@@ -2,22 +2,18 @@
 import { UserIcon, MailIcon, ListCheckIcon } from 'vue-tabler-icons';
 import { signOut, getAuth } from 'firebase/auth';
 const auth = getAuth();
-const router = useRouter();
 
 const logout = async () => {
   let isLogout = false;
   try {
     await signOut(auth);
-    isLogout = true;
+
     // console.log('Logout');
     // return navigateTo('/');
     // Handle successful logout, you can redirect or update UI state here
   } catch (error) {
     // Handle logout error
     console.error(error.message);
-  }
-  if (isLogout) {
-    return navigateTo('/');
   }
 };
 </script>
@@ -26,7 +22,7 @@ const logout = async () => {
   <!-- ---------------------------------------------- -->
   <!-- notifications DD -->
   <!-- ---------------------------------------------- -->
-  <v-menu :close-on-content-click="false">
+  <v-menu :close-on-content-click="true">
     <template v-slot:activator="{ props }">
       <v-btn
         class="profileBtn custom-hover-primary"
@@ -46,23 +42,7 @@ const logout = async () => {
             <UserIcon stroke-width="1.5" size="20" />
           </template>
           <v-list-item-title class="pl-4 text-body-1"
-            >My Profile</v-list-item-title
-          >
-        </v-list-item>
-        <v-list-item value="item2" active-color="primary">
-          <template v-slot:prepend>
-            <MailIcon stroke-width="1.5" size="20" />
-          </template>
-          <v-list-item-title class="pl-4 text-body-1"
-            >My Account</v-list-item-title
-          >
-        </v-list-item>
-        <v-list-item value="item3" active-color="primary">
-          <template v-slot:prepend>
-            <ListCheckIcon stroke-width="1.5" size="20" />
-          </template>
-          <v-list-item-title class="pl-4 text-body-1"
-            >My Task</v-list-item-title
+            ><NuxtLink to="/profile">My Profile</NuxtLink></v-list-item-title
           >
         </v-list-item>
       </v-list>
@@ -74,3 +54,9 @@ const logout = async () => {
     </v-sheet>
   </v-menu>
 </template>
+<style scoped>
+a {
+  text-decoration: none;
+  color: #1f1f1f;
+}
+</style>

@@ -116,6 +116,7 @@
             color="primary"
             size="large"
             block
+            :disabled="isLoad || validateForm()"
             @click="handleSubmit(params)"
             ><span v-if="!isLoad">Submit</span>
             <v-progress-circular indeterminate v-else></v-progress-circular>
@@ -162,6 +163,32 @@ const lon = ref(0);
 onMounted(() => {
   editBTS(params);
 });
+const validateForm = () => {
+  // Validate required fields
+  if (!nama.value) {
+    return true;
+  }
+  if (!alamat.value) {
+    return true;
+  }
+  if (!kapasitas.value || isNaN(Number(kapasitas.value))) {
+    return true;
+  }
+  if (!jml_pelanggan.value || isNaN(Number(jml_pelanggan.value))) {
+    return true;
+  }
+  if (!layanan_terpakai.value || isNaN(Number(layanan_terpakai.value))) {
+    return true;
+  }
+  if (!lat.value || isNaN(Number(lat.value))) {
+    return true;
+  }
+  if (!lon.value || isNaN(Number(lon.value))) {
+    return true;
+  }
+
+  // Validate additional fields with your existing functions
+};
 const openModal = () => {
   showModal.value = true;
   console.log('Click');

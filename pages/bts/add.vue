@@ -15,6 +15,7 @@
             color="primary"
           ></v-text-field>
         </v-col>
+
         <v-col cols="12">
           <v-label class="font-weight-bold mb-1">Alamat</v-label>
           <v-text-field
@@ -93,7 +94,7 @@
                   <LMarker
                     :lat-lng="defaultLocation"
                     ref="marker"
-                    draggable="true"
+                    :draggable="true"
                     @dragend="updateMe"
                   >
                     <LTooltip>You</LTooltip>
@@ -115,7 +116,7 @@
             color="primary"
             size="large"
             block
-            :disabled="isLoad"
+            :disabled="isLoad || validateForm()"
             @click="handleSubmit"
             ><span v-if="!isLoad">Submit</span>
             <v-progress-circular indeterminate v-else></v-progress-circular>
@@ -130,8 +131,9 @@
 import { MapIcon } from 'vue-tabler-icons';
 import { ref, inject } from 'vue';
 import { collection, addDoc, getDocs, GeoPoint } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
-import fetchData from '@/server/fetchData';
 
+// import fetchData from '@/server/fetchData';
+const { validateMin } = useValidation();
 const router = useRouter();
 const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that provides Firestore
 const btsCollection = collection(firestore, 'bts');
@@ -149,14 +151,39 @@ const lat = ref(0);
 const lon = ref(0);
 const openModal = () => {
   showModal.value = true;
-  console.log('Click');
 };
 const closeModal = () => {
   showModal.value = false;
 };
+const validateForm = () => {
+  // Validate required fields
+  if (!nama.value) {
+    return true;
+  }
+  if (!alamat.value) {
+    return true;
+  }
+  if (!kapasitas.value || isNaN(Number(kapasitas.value))) {
+    return true;
+  }
+  if (!jml_pelanggan.value || isNaN(Number(jml_pelanggan.value))) {
+    return true;
+  }
+  if (!layanan_terpakai.value || isNaN(Number(layanan_terpakai.value))) {
+    return true;
+  }
+  if (!lat.value || isNaN(Number(lat.value))) {
+    return true;
+  }
+  if (!lon.value || isNaN(Number(lon.value))) {
+    return true;
+  }
+
+  // Validate additional fields with your existing functions
+};
 //return btsxx=>xx
 const getLastData = async () => {
-  const { data } = await fetchData(btsCollection);
+  const { data } = await useFetchData(btsCollection);
   const idCount = data.map((item) => {
     const { id_bts } = item;
     const numericPart = parseInt(id_bts.slice(3), 10);
@@ -195,7 +222,7 @@ const handleSubmit = async () => {
 
   try {
     // Add a new document to the 'bts' collection with the input data
-    await addDoc(btsCollection, dataObject);
+    // await addDoc(btsCollection, dataObject);
 
     // Optionally, you can reset the form fields after successful submission
 
@@ -214,7 +241,7 @@ const handleSubmit = async () => {
 const updateMe = (e) => {
   lat.value = e.target.getLatLng().lat;
   lon.value = e.target.getLatLng().lng;
-  console.log(typeof lat.value);
+  // console.log(typeof lat.value);
 };
 </script>
 

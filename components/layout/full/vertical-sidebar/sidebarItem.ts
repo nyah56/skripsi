@@ -1,4 +1,8 @@
-import { BroadcastIcon, LayoutDashboardIcon } from 'vue-tabler-icons';
+import {
+  BroadcastIcon,
+  LayoutDashboardIcon,
+  ClipboardIcon,
+} from 'vue-tabler-icons';
 import { isAdminNav } from './isAdminItems';
 export interface menu {
   header?: string;
@@ -26,6 +30,11 @@ const sidebarItem: menu[] = [
     title: 'BTS Terdekat',
     icon: BroadcastIcon,
     to: '/maps',
+  },
+  {
+    title: 'Kegiatan',
+    icon: ClipboardIcon,
+    to: '/kegiatan',
   },
 ];
 isAdminNav(sidebarItem);
