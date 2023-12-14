@@ -37,36 +37,19 @@
             v-model="jenis_kegiatan"
           ></v-select>
         </v-col>
-        <v-col cols="12">
-          <v-label class="font-weight-bold mb-1 date">Tanggal</v-label>
-          <v-text-field
-            variant="outlined"
-            hide-details
-            v-model="tanggal"
-            color="primary"
-            @click:append-inner="isShow = !isShow"
-            :append-inner-icon="CalendarIcon"
-          ></v-text-field>
-          <v-col cols="4" class="pt-0" :offset="reactOffset">
-            <!-- <DatePicker
-                v-if="isShow"
-                :onclick="formatDate"
-                :style="{ position: 'absolute', zIndex: 10 }"
-                v-model="datePicker"
-                mode="date"
-              ></VCalendar> -->
 
-            <!-- <ClientOnly>
-              <DatePicker
-                v-if="isShow"
-                mode="date"
-                :style="{ position: 'absolute', zIndex: 10 }"
-                :onclick="formatDate"
-                v-model="datePicker"
-              ></DatePicker
-            ></ClientOnly> -->
-            <!-- <VueDatePicker></VueDatePicker> -->
-          </v-col>
+        <v-col cols="4" class="pt-0">
+          <v-select :items="day" v-model="dayInput" label="Tanggal"></v-select>
+        </v-col>
+        <v-col cols="4" class="pt-0">
+          <v-select
+            :items="month"
+            v-model="monthInput"
+            label="Bulan"
+          ></v-select>
+        </v-col>
+        <v-col cols="4" class="pt-0">
+          <v-select :items="year" v-model="yearInput" label="Tahun"></v-select>
         </v-col>
         <v-col cols="12">
           <v-label class="font-weight-bold mb-1">Nama Pelanggan</v-label>
@@ -108,14 +91,16 @@
 
 <script setup>
 import { CalendarIcon } from 'vue-tabler-icons';
-import { ref, inject, onMounted } from 'vue';
+import { ref, inject, onMounted, computed } from 'vue';
 import { collection, addDoc, getDocs, GeoPoint } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
 // import VueDatePicker from '@vuepic/vue-datepicker';
 // import { Calendar, DatePicker } from 'v-calendar';
 // import 'v-calendar/style.css';
 // import '@vuepic/vue-datepicker/dist/main.css';
+const router = useRouter();
 const rawAuth = localStorage.getItem('uid');
 const auth = rawAuth.slice(1, -1);
+// console.log(auth);
 // import fetchData from '@/server/fetchData';
 const reactOffset = ref();
 reactOffset.value = useScreenWH();
@@ -126,27 +111,81 @@ const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that p
 const kegiatanCollection = collection(firestore, 'kegiatan');
 
 const isLoad = ref(false);
+const dayInput = ref();
+const monthInput = ref();
+const yearInput = ref();
+
+const dynamicYear = () => {
+  const year = new Date().getFullYear();
+  const yearRange = [];
+  for (let i = year - 3; i <= year + 3; i++) {
+    yearRange.push(i.toString());
+  }
+  return yearRange;
+};
+
+const year = ref([]);
+year.value = dynamicYear();
+const day = ref([
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12',
+  '13',
+  '14',
+  '15',
+  '16',
+  '17',
+  '18',
+  '19',
+  '20',
+  '21',
+  '22',
+  '23',
+  '24',
+  '25',
+  '26',
+  '27',
+  '28',
+  '29',
+  '30',
+  '31',
+]);
+const month = ref([
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12',
+]);
 
 const kegiatan = ref('');
 const pelaksana = ref('');
 const jenis_kegiatan = ref('');
 const nama_pelanggan = ref('');
-const tanggal = ref();
+const tanggal = ref('');
 const kesimpulan = ref('');
 const datePicker = ref('');
-console.log(tanggal.value);
-const formatDate = () => {
-  const date = new Date(datePicker.value);
+
+const formatDate = (day, month, year) => {
   // console.log(typeof datePicker.value);
-  if (typeof datePicker.value == 'string') {
-    tanggal.value;
-    return;
-  }
-  const formattedDate = `${date.getDate()}/${
-    date.getMonth() + 1
-  }/${date.getFullYear()}`;
-  // isShow.value = false;
-  tanggal.value = formattedDate;
+  // console.log(`${day}/${month}/${year}`);
+  return `${day}/${month}/${year}`;
 };
 
 onMounted(() => {
@@ -166,7 +205,13 @@ const validateForm = () => {
   if (!nama_pelanggan.value) {
     return true;
   }
-  if (!tanggal.value) {
+  if (!dayInput.value) {
+    return true;
+  }
+  if (!monthInput.value) {
+    return true;
+  }
+  if (!yearInput.value) {
     return true;
   }
   if (!kesimpulan.value) {
@@ -204,10 +249,10 @@ const handleSubmit = async () => {
     kegiatan: kegiatan.value,
     pelaksana: pelaksana.value,
     jenis_kegiatan: jenis_kegiatan.value,
-    tanggal: tanggal.value,
+    tanggal: formatDate(dayInput.value, monthInput.value, yearInput.value),
     nama_pelanggan: nama_pelanggan.value,
     kesimpulan: kesimpulan.value,
-    createdByUid: auth.currentUser.uid,
+    createdByUid: auth,
   };
 
   try {
@@ -221,7 +266,7 @@ const handleSubmit = async () => {
     tanggal.value = '';
     nama_pelanggan.value = '';
     kesimpulan.value = '';
-    // router.push('/kegiatan/');
+    router.push('/kegiatan/');
     // console.log('Data successfully sent to Firestore:', dataObject);
   } catch (error) {
     console.error(dataObject);

@@ -37,28 +37,18 @@
             v-model="jenis_kegiatan"
           ></v-select>
         </v-col>
-        <v-col cols="12">
-          <v-label class="font-weight-bold mb-1 date">Tanggal</v-label>
-          <v-text-field
-            variant="outlined"
-            hide-details
-            v-model="tanggal"
-            color="primary"
-            @click:append-inner="isShow = !isShow"
-            :append-inner-icon="CalendarIcon"
-          ></v-text-field>
-          <v-col cols="4" class="pt-0" :offset="reactOffset">
-            <ClientOnly>
-              <!-- <DatePicker
-                v-if="isShow"
-                mode="date"
-                :style="{ position: 'absolute', zIndex: 10 }"
-                :onclick="formatDate"
-                v-model="datePicker"
-                :attributes="attributes"
-              ></DatePicker> -->
-            </ClientOnly>
-          </v-col>
+        <v-col cols="4" class="pt-0">
+          <v-select :items="day" v-model="dayInput" label="Tanggal"></v-select>
+        </v-col>
+        <v-col cols="4" class="pt-0">
+          <v-select
+            :items="month"
+            v-model="monthInput"
+            label="Bulan"
+          ></v-select>
+        </v-col>
+        <v-col cols="4" class="pt-0">
+          <v-select :items="year" v-model="yearInput" label="Tahun"></v-select>
         </v-col>
         <v-col cols="12">
           <v-label class="font-weight-bold mb-1">Nama Pelanggan</v-label>
@@ -109,13 +99,13 @@ import {
   doc,
   updateDoc,
 } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
-import { getAuth } from 'firebase/auth';
+// import { getAuth } from 'firebase/auth';
 // import { DatePicker } from 'v-calendar';
-const reactOffset = ref();
-reactOffset.value = useScreenWH();
+
 // import 'v-calendar/style.css';
 // import fetchData from '@/server/fetchData';
-const auth = getAuth();
+const rawAuth = localStorage.getItem('uid');
+const auth = rawAuth.slice(1, -1);
 const isShow = ref(false);
 // console.log(auth.currentUser.uid);
 const router = useRouter();
@@ -134,27 +124,74 @@ const datePicker = ref('');
 
 // const newDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
 // const dateObject = new Date(newDate);
-const attributes = ref();
-// [
-//   {
-//     highlight: true,
-//     dates: dateObject,
-//   },
-// ]
-// attributes.value = ;
-const formatDate = () => {
-  const date = new Date(datePicker.value);
-  // console.log(typeof datePicker.value);
-  if (typeof datePicker.value == 'string') {
-    tanggal.value;
-    return;
+const dayInput = ref();
+const monthInput = ref();
+const yearInput = ref();
+
+const dynamicYear = () => {
+  const year = new Date().getFullYear();
+  const yearRange = [];
+  for (let i = year - 3; i <= year + 3; i++) {
+    yearRange.push(i.toString());
   }
-  const formattedDate = `${date.getDate()}/${
-    date.getMonth() + 1
-  }/${date.getFullYear()}`;
-  // isShow.value = false;
-  tanggal.value = formattedDate;
+  return yearRange;
 };
+
+const year = ref([]);
+year.value = dynamicYear();
+const day = ref([
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12',
+  '13',
+  '14',
+  '15',
+  '16',
+  '17',
+  '18',
+  '19',
+  '20',
+  '21',
+  '22',
+  '23',
+  '24',
+  '25',
+  '26',
+  '27',
+  '28',
+  '29',
+  '30',
+  '31',
+]);
+const month = ref([
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12',
+]);
+const formatDate = (day, month, year) => {
+  // console.log(typeof datePicker.value);
+  // console.log(`${day}/${month}/${year}`);
+  return `${day}/${month}/${year}`;
+};
+
 const params = router.currentRoute.value.params.id;
 // console.log(param);
 onMounted(() => {
@@ -174,7 +211,13 @@ const validateForm = () => {
   if (!nama_pelanggan.value) {
     return true;
   }
-  if (!tanggal.value) {
+  if (!dayInput.value) {
+    return true;
+  }
+  if (!monthInput.value) {
+    return true;
+  }
+  if (!yearInput.value) {
     return true;
   }
   if (!kesimpulan.value) {
@@ -198,19 +241,15 @@ const editKegiatan = async (id) => {
   kegiatan.value = data.kegiatan || '';
   pelaksana.value = data.pelaksana || '';
   jenis_kegiatan.value = data.jenis_kegiatan || '';
-  tanggal.value = data.tanggal || '';
+  // tanggal.value = data.tanggal || '';
+  const parts = data.tanggal.split('/');
+  // console.log(parts);
+  dayInput.value = parts[0] || '';
+  monthInput.value = parts[1] || '';
+  yearInput.value = parts[2] || '';
   nama_pelanggan.value = data.nama_pelanggan || '';
   kesimpulan.value = data.kesimpulan || '';
-  const parts = tanggal.value.split('/').map(Number);
-  // console.log(parts);
-  const newDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-  const dateObject = new Date(newDate);
-  attributes.value = [
-    {
-      highlight: true,
-      dates: dateObject,
-    },
-  ];
+
   isLoad.value = false;
 };
 const handleSubmit = async (id) => {
@@ -226,10 +265,10 @@ const handleSubmit = async (id) => {
     kegiatan: kegiatan.value,
     pelaksana: pelaksana.value,
     jenis_kegiatan: jenis_kegiatan.value,
-    tanggal: tanggal.value,
+    tanggal: formatDate(dayInput.value, monthInput.value, yearInput.value),
     nama_pelanggan: nama_pelanggan.value,
     kesimpulan: kesimpulan.value,
-    createdByUid: auth.currentUser.uid,
+    createdByUid: auth,
   };
 
   try {
