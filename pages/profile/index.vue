@@ -14,7 +14,7 @@
           ></v-text-field>
         </v-col>
         <v-col cols="12">
-          <v-label class="font-weight-bold mb-1">Old Passwod</v-label>
+          <v-label class="font-weight-bold mb-1">Old Password</v-label>
           <v-text-field
             variant="outlined"
             type="password"

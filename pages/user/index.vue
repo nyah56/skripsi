@@ -84,6 +84,7 @@ async function signUpWithEmailAndPassword(email, password, name) {
     message.value = 'Akun Berhasil ditambahkan,Silahkan Login Kembali';
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
+    await SendEmail(email, name, password);
     await updateProfile(auth.currentUser, { displayName: name });
     await signOut(auth);
   } catch (error) {
@@ -146,7 +147,7 @@ const submitForm = () => {
         password.value,
         displayName.value
       );
-      SendEmail(email.value, displayName.value, password.value);
+
       return;
     }
     isPass.value = true;
