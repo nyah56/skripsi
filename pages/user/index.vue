@@ -43,6 +43,10 @@
             ><span v-if="!isLoad">Submit</span>
             <v-progress-circular indeterminate v-else></v-progress-circular>
           </v-btn>
+          <v-btn color="primary" size="large" block flat @click="SendEmail"
+            ><span v-if="!isLoad">Subasdasdmit</span>
+            <v-progress-circular indeterminate v-else></v-progress-circular>
+          </v-btn>
         </v-col>
       </v-row>
     </form>
@@ -65,12 +69,44 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
+const SendEmail = async () => {
+  let msg = {
+    personalizations: [
+      {
+        to: [
+          {
+            email: 'x6perb@gmail.com',
+            name: 'Name',
+          },
+        ],
+      },
+    ],
+    from: {
+      email: 'pearson.ibnu@paditech.id',
+      name: 'My app',
+    },
+    subject: 'Test message!',
+    content: [
+      {
+        type: 'text/plain',
+        value: 'Test message',
+      },
+      {
+        type: 'text/html',
+        value: '<h1>Test message!</h1>',
+      },
+    ],
+  };
+  const { data } = await useFetch('/api/sendgrid', {
+    method: 'POST',
+    body: msg,
+  });
+};
+// import sgMail from '@sendgrid/mail';
 
-import sgMail from '@sendgrid/mail';
-
-const config = useRuntimeConfig();
+// const config = useRuntimeConfig();
 const auth = getAuth();
-sgMail.setApiKey(config.SENDGRID_API_KEY);
+// sgMail.setApiKey(config.SENDGRID_API_KEY);
 
 // function sendEmail(msg) {
 //   return sgMail
@@ -184,11 +220,12 @@ const submitForm = () => {
   if (displayName.value !== '' && email.value !== '' && password.value !== '') {
     isLoad.value = true;
     if (password.value.length >= 8) {
-      signUpWithEmailAndPassword(
-        email.value,
-        password.value,
-        displayName.value
-      );
+      SendEmail();
+      // signUpWithEmailAndPassword(
+      //   email.value,
+      //   password.value,
+      //   displayName.value
+      // );
       return;
     }
     isPass.value = true;
