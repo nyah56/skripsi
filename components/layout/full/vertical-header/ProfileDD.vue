@@ -7,7 +7,7 @@ const logout = async () => {
   let isLogout = false;
   try {
     await signOut(auth);
-
+    localStorage.removeItem('uid');
     // console.log('Logout');
     // return navigateTo('/');
     // Handle successful logout, you can redirect or update UI state here

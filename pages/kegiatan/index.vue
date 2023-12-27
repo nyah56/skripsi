@@ -53,12 +53,14 @@
             @click="showModalPrint(item.id_kegiatan)"
           >
           </PrinterIcon>
+
           <TrashIcon class="delete" @click="showModal(item.id_kegiatan)">
           </TrashIcon>
         </td>
       </tr>
     </tbody>
   </v-table>
+
   <v-dialog v-model="isShow" width="400">
     <v-card>
       <v-card-title class="text-h5"> Yakin ingin Menghapus Data? </v-card-title>
@@ -74,58 +76,12 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="showPrint" width="400">
-    <v-card>
-      <div ref="pdfSection" class="pa-4">
-        <h3>Data Kegiatan [{{ nama_pelanggan }}] {{ tanggal }}</h3>
-        <table class="print-table">
-          <thead>
-            <tr>
-              <td class="text-subtitle-1">Kegiatan</td>
-              <td class="text-subtitle-1">{{ kegiatan }}</td>
-            </tr>
-            <tr>
-              <td class="text-subtitle-1">Jenis Kegiatan</td>
-              <td class="text-subtitle-1">{{ jenis_kegiatan }}</td>
-            </tr>
-            <tr>
-              <td class="text-subtitle-1">Pelaksana</td>
-              <td class="text-subtitle-1">{{ pelaksana }}</td>
-            </tr>
-            <tr>
-              <td class="text-subtitle-1">Kesimpulan</td>
-              <td class="text-subtitle-1">{{ kesimpulan }}</td>
-            </tr>
-          </thead>
-        </table>
-      </div>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue-darken-1" variant="text" @click="showPrint = false">
-          Close
-        </v-btn>
-        <v-btn
-          color="blue-darken-1"
-          variant="text"
-          @click="exportToPDF(`[${nama_pelanggan}] ${tanggal}.pdf`, pdfSection)"
-        >
-          Cetak
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+
   <!-- <button @click="exportToPDF('my-pdf-file.pdf', pdfSection)">
     print card
   </button> -->
 </template>
-<style scoped>
-.print-table {
-  margin-top: 10px;
-}
-.print-table td {
-  padding: 5px;
-}
-</style>
+
 <script setup>
 import Loading from '@/components/maps/Loading.vue';
 import { EditIcon, TrashIcon, PrinterIcon } from 'vue-tabler-icons';
@@ -142,7 +98,92 @@ import {
 import { onMounted, ref, computed } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
 
-import { exportToPDF } from '#imports';
+import { exportToPDF, htmlToPdf } from '#imports';
+const createTemporaryElement = (htmlString) => {
+  const tempDiv = document.createElement('div');
+  tempDiv.className = 'full pa-4';
+  tempDiv.innerHTML = htmlString;
+  return tempDiv;
+};
+const openInWindow = async () => {
+  showPrint.value = false;
+  const htmlEl =
+    createTemporaryElement(`<h3>Data Kegiatan [${nama_pelanggan.value}] ${tanggal.value}</h3>
+        <table class="print-table">
+          <thead>
+            <tr>
+              <td class="text-subtitle-1">Kegiatan</td>
+              <td class="text-subtitle-1">${kegiatan.value}</td>
+            </tr>
+            <tr>
+              <td class="text-subtitle-1">Jenis Kegiatan</td>
+              <td class="text-subtitle-1">${jenis_kegiatan.value}</td>
+            </tr>
+            <tr>
+              <td class="text-subtitle-1">Pelaksana</td>
+              <td class="text-subtitle-1">${pelaksana.value}</td>
+            </tr>
+            <tr>
+              <td class="text-subtitle-1">Kesimpulan</td>
+              <td class="text-subtitle-1">${kesimpulan.value}</td>
+            </tr>
+          </thead>
+        </table> 
+        
+        <style >
+        .full{
+          width:400px;
+        }
+        h3, table, .print-table {
+          width: 100%;
+          margin: 0; /* Remove any default margins */
+        }
+              .print-table {
+        /* Basic formatting */
+        margin-top: 10px;
+        width: 100%;
+        border-collapse: collapse; /* Combine borders for cleaner look */
+        font-family: sans-serif; /* Consistent font for readability */
+
+        /* Visual enhancements */
+        border: 1px solid #ccc; /* Add a subtle border */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+      }
+
+      .print-table th,
+      .print-table td {
+        padding: 10px 15px; /* Generous padding for content */
+        text-align: left; /* Align text to the left */
+        border: 1px solid #ccc; /* Separate cells with borders */
+      }
+
+      .print-table th {
+        /* Emphasis on headers */
+        background-color: #f5f5f5; /* Lighter background for headers */
+        font-weight: bold; /* Bold text for headers */
+      }
+
+      .print-table td:nth-child(odd) {
+        /* Alternate row coloring for readability */
+        background-color: #f2f2f2;
+      }
+      @media print, screen and (min-width: 210mm) and (min-height: 297mm) {
+        /* Styles for A4 size */
+        
+      }
+        </style>`);
+  const pdf = await htmlToPdf(htmlEl, undefined, {
+    width: 100,
+    html2canvas: {
+      scale: 1,
+      useCORS: true,
+    },
+  });
+
+  const blob = pdf.output('blob');
+  window.open(URL.createObjectURL(blob), '_blank');
+};
+// console.log(pdfSection.value);
 const pdfSection = (ref < HTMLElement) | (null > null);
 // import fetchData from '@/server/fetchData';
 // const auth = getAuth();
@@ -161,9 +202,10 @@ const showModal = (item) => {
   deleteData.value = item;
   isShow.value = true;
 };
-const showModalPrint = (item) => {
+const showModalPrint = async (item) => {
   console.log(item);
-  showKegiatan(item);
+  await showKegiatan(item);
+  openInWindow();
   // deleteData.value = item;
   showPrint.value = true;
 };
