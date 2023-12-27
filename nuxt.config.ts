@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   },
   devServerHandlers: [],
   hooks: {},
-  modules: ['nuxt3-leaflet'],
+  modules: ['nuxt3-leaflet', '@sidebase/nuxt-pdf'],
   runtimeConfig: {
     public: {
       API_KEY: process.env.FB_API_KEY,

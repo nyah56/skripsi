@@ -222,7 +222,7 @@ const handleSubmit = async () => {
 
   try {
     // Add a new document to the 'bts' collection with the input data
-    // await addDoc(btsCollection, dataObject);
+    await addDoc(btsCollection, dataObject);
 
     // Optionally, you can reset the form fields after successful submission
 
