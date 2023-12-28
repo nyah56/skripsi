@@ -131,6 +131,7 @@ import { onMounted, ref, computed } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
 
 // import fetchData from '@/server/fetchData';
+const showDatePicker = ref(false);
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
 const showData = ref(null);
@@ -140,6 +141,7 @@ const pelaksana = ref('');
 const jenis_kegiatan = ref('');
 const nama_pelanggan = ref('');
 const tanggal = ref('');
+
 const kesimpulan = ref('');
 const showModal = (item) => {
   showData.value = item;

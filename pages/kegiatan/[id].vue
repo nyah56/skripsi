@@ -37,19 +37,26 @@
             v-model="jenis_kegiatan"
           ></v-select>
         </v-col>
-        <v-col cols="4" class="pt-0">
-          <v-select :items="day" v-model="dayInput" label="Tanggal"></v-select>
-        </v-col>
-        <v-col cols="4" class="pt-0">
-          <v-select
-            :items="month"
-            v-model="monthInput"
-            label="Bulan"
-          ></v-select>
-        </v-col>
-        <v-col cols="4" class="pt-0">
-          <v-select :items="year" v-model="yearInput" label="Tahun"></v-select>
-        </v-col>
+        <v-col cols="12"
+          ><v-menu
+            v-model="menu"
+            :close-on-content-click="false"
+            location="end"
+          >
+            <template v-slot:activator="{ props }">
+              <v-text-field
+                label="Tanggal"
+                v-model="tanggal"
+                prepend-inner-icon="mdi-calendar-blank-outline"
+                v-bind="props"
+              ></v-text-field>
+            </template>
+            <v-date-picker
+              v-model="inputDate"
+              @update:model-value="formatDateInput"
+            ></v-date-picker> </v-menu
+        ></v-col>
+
         <v-col cols="12">
           <v-label class="font-weight-bold mb-1">Nama Pelanggan</v-label>
           <v-text-field
@@ -68,6 +75,7 @@
             color="primary"
           ></v-text-field>
         </v-col>
+
         <!-- <v-overlay activator="showModal"></v-overlay> -->
 
         <v-col cols="4" class="pt-0" offset="8">
@@ -101,12 +109,12 @@ import {
 } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
 // import { getAuth } from 'firebase/auth';
 // import { DatePicker } from 'v-calendar';
-
+import { useDate } from 'vuetify';
 // import 'v-calendar/style.css';
 // import fetchData from '@/server/fetchData';
 const rawAuth = localStorage.getItem('uid');
 const auth = rawAuth.slice(1, -1);
-const isShow = ref(false);
+const menu = ref(false);
 // console.log(auth.currentUser.uid);
 const router = useRouter();
 const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that provides Firestore
@@ -120,7 +128,16 @@ const jenis_kegiatan = ref('');
 const nama_pelanggan = ref('');
 const tanggal = ref();
 const kesimpulan = ref('');
-const datePicker = ref('');
+const date = ref();
+const inputDate = ref();
+const dateFormat = useDate();
+const formatDateInput = () => {
+  let rawDate = dateFormat.toISO(inputDate.value);
+  const dateParts = rawDate.slice(0, 10).split('-'); // Extract YYYY-MM-DD
+  const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`; // Rearrange to DD/MM/YYYY
+  tanggal.value = formattedDate;
+  menu.value = false;
+};
 
 // const newDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
 // const dateObject = new Date(newDate);
@@ -135,61 +152,6 @@ const dynamicYear = () => {
     yearRange.push(i.toString());
   }
   return yearRange;
-};
-
-const year = ref([]);
-year.value = dynamicYear();
-const day = ref([
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  '9',
-  '10',
-  '11',
-  '12',
-  '13',
-  '14',
-  '15',
-  '16',
-  '17',
-  '18',
-  '19',
-  '20',
-  '21',
-  '22',
-  '23',
-  '24',
-  '25',
-  '26',
-  '27',
-  '28',
-  '29',
-  '30',
-  '31',
-]);
-const month = ref([
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  '9',
-  '10',
-  '11',
-  '12',
-]);
-const formatDate = (day, month, year) => {
-  // console.log(typeof datePicker.value);
-  // console.log(`${day}/${month}/${year}`);
-  return `${day}/${month}/${year}`;
 };
 
 const params = router.currentRoute.value.params.id;
@@ -211,13 +173,7 @@ const validateForm = () => {
   if (!nama_pelanggan.value) {
     return true;
   }
-  if (!dayInput.value) {
-    return true;
-  }
-  if (!monthInput.value) {
-    return true;
-  }
-  if (!yearInput.value) {
+  if (!tanggal.value) {
     return true;
   }
   if (!kesimpulan.value) {
@@ -249,7 +205,10 @@ const editKegiatan = async (id) => {
   yearInput.value = parts[2] || '';
   nama_pelanggan.value = data.nama_pelanggan || '';
   kesimpulan.value = data.kesimpulan || '';
-
+  tanggal.value = data.tanggal;
+  const dateParts = tanggal.value.slice(0, 10).split('/'); // Extract YYYY-MM-DD
+  const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+  inputDate.value = dateFormat.parseISO(formattedDate);
   isLoad.value = false;
 };
 const handleSubmit = async (id) => {
@@ -265,7 +224,7 @@ const handleSubmit = async (id) => {
     kegiatan: kegiatan.value,
     pelaksana: pelaksana.value,
     jenis_kegiatan: jenis_kegiatan.value,
-    tanggal: formatDate(dayInput.value, monthInput.value, yearInput.value),
+    tanggal: tanggal.value,
     nama_pelanggan: nama_pelanggan.value,
     kesimpulan: kesimpulan.value,
     createdByUid: auth,
@@ -299,41 +258,5 @@ const handleSubmit = async (id) => {
 a {
   text-decoration: none;
   color: #0a0000;
-}
-.custom-button {
-  /* Basic button styles */
-  padding: 8px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  transition: background-color 0.3s;
-
-  justify-items: end;
-}
-.btn-primary {
-  background-color: #fff;
-  color: #ff5d5d;
-}
-
-.close-icon {
-  padding: 3px;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: #0a0000;
-  height: 22px;
-  width: 22px;
-}
-.modal-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.close-icon:hover {
-  background-color: red;
 }
 </style>
