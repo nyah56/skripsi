@@ -133,7 +133,7 @@ import { ref, inject } from 'vue';
 import { collection, addDoc, getDocs, GeoPoint } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
 
 // import fetchData from '@/server/fetchData';
-const { validateMin } = useValidation();
+
 const router = useRouter();
 const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that provides Firestore
 const btsCollection = collection(firestore, 'bts');
