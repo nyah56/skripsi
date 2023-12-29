@@ -1,10 +1,13 @@
 <template>
-  <Loading v-if="isLoad">Loading Data Kegiatan...</Loading>
   <div class="heading mb-5 pl-3">
     <h3 class="">Data Kegiatan</h3>
   </div>
 
-  <v-table class="month-table">
+  <v-skeleton-loader
+    type="table-thead,table-tbody"
+    v-if="isLoad"
+  ></v-skeleton-loader>
+  <v-table class="month-table" v-else>
     <thead>
       <tr>
         <th class="text-subtitle-1 font-weight-bold">Nama Pelanggan</th>
@@ -14,6 +17,7 @@
         <th>Action</th>
       </tr>
     </thead>
+
     <tbody>
       <tr v-if="kegiatanData.length == 0">
         <td colspan="5" style="text-align: center">Belum ada Kegiatan</td>
@@ -146,9 +150,9 @@ const kesimpulan = ref('');
 const showModal = (item) => {
   showData.value = item;
   isShow.value = true;
-  editKegiatan(item);
+  showKegiatan(item);
 };
-const editKegiatan = async (id) => {
+const showKegiatan = async (id) => {
   //   console.log(parseInt(id));
   const q = query(kegiatanCollection, where('id_kegiatan', '==', parseInt(id)));
   const querySnapshot = await getDocs(q);
@@ -186,18 +190,6 @@ const loadKegiatan = async () => {
 };
 </script>
 <style scoped>
-.addBtn {
-  text-decoration: none;
-  background-color: #5d87ff;
-  color: beige;
-  border-radius: 5px;
-  padding: 10px;
-  display: flex;
-  flex-direction: row;
-}
-.addBtn:hover {
-  background-color: #567de9;
-}
 .heading {
   display: flex;
   flex-direction: row;

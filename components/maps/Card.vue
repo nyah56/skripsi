@@ -4,7 +4,7 @@
       <h4>Info</h4>
       <h4>BTS - {{ title }}</h4>
       <p><strong>Daerah </strong>: {{ city }}</p>
-
+      <p>Jangkauan dengan BTS {{ title }} {{ range }} %</p>
       <p>Lokasi saat ini dengan BTS {{ title }} {{ distance }} km</p>
       <div class="list-item">
         <p class="status">Jarak BTS dengan lokasi:</p>
@@ -31,6 +31,7 @@ defineProps({
   usedCapacity: Number,
   customer: Number,
   diff: Number,
+  range: Number,
 });
 </script>
 <style scoped>
@@ -38,7 +39,7 @@ defineProps({
 .card {
   margin-top: 10px;
   background-color: #fdfdfd;
-  width: 240px;
+  width: 250px;
   padding: 15px;
 }
 .status {

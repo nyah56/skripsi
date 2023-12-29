@@ -1,13 +1,15 @@
 <template>
-  <Loading v-if="isLoad">Loading Data Kegiatan...</Loading>
   <div class="heading mb-5 pl-3">
     <h3 class="">Data Kegiatan</h3>
     <NuxtLink to="/kegiatan/add" class="addBtn"
       >New <CirclePlusIcon class="ml-2"></CirclePlusIcon
     ></NuxtLink>
   </div>
-
-  <v-table class="month-table">
+  <v-skeleton-loader
+    type="table-thead,table-tbody"
+    v-if="isLoad"
+  ></v-skeleton-loader>
+  <v-table class="month-table" v-else>
     <thead>
       <tr>
         <th class="text-subtitle-1 font-weight-bold">Nama Pelanggan</th>

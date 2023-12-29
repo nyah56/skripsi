@@ -38,11 +38,7 @@
           ></v-select>
         </v-col>
         <v-col cols="12"
-          ><v-menu
-            v-model="menu"
-            :close-on-content-click="false"
-            location="end"
-          >
+          ><v-menu v-model="menu" :close-on-content-click="false">
             <template v-slot:activator="{ props }">
               <v-text-field
                 label="Tanggal"
@@ -54,6 +50,7 @@
             <v-date-picker
               v-model="inputDate"
               @update:model-value="formatDateInput"
+              color="primary"
             ></v-date-picker> </v-menu
         ></v-col>
 

@@ -40,7 +40,15 @@ const btsData = ref([]); // ref For Fetching
 watch(btsData, (newVal) => {
   mappingBTSCalc(newVal);
 });
+const statusByPercent = (data) => {
+  const temp = (data / 30) * 100;
+  let final = 100 - temp;
 
+  if (final < 0) {
+    return 0;
+  }
+  return final.toFixed(2);
+};
 const statusAllBTS = (data) => {
   let colorStatus, msgStatus;
   if (data <= 10) {
@@ -64,35 +72,25 @@ const mappingBTSCalc = (data) => {
     layanan_terpakai: item.layanan_terpakai,
     sisa_layanan: item.sisa_layanan,
     jml_pelanggan: item.jml_pelanggan,
-
     jarak: getDistanceFromLatLonInKm(
       defaultLocation.value.lat,
       defaultLocation.value.lng,
       item.coordinates[0],
       item.coordinates[1]
     ),
+    jangkauan: statusByPercent(
+      getDistanceFromLatLonInKm(
+        defaultLocation.value.lat,
+        defaultLocation.value.lng,
+        item.coordinates[0],
+        item.coordinates[1]
+      )
+    ),
   }));
 
   btsCalc.value.sort((a, b) => a.jarak - b.jarak);
 };
-// const fetchData = async () => {
-//   try {
-//     const data = [];
-//     const querySnapshot = await getDocs(btsCollection);
 
-//     querySnapshot.forEach((doc) => {
-//       // Here, you can access the document data
-//       data.push(doc.data());
-//     });
-//     // console.table(data);
-//     mappingBtsData(data);
-//     // mappingBtsCalc(data);
-//     isLoad.value = false;
-//     // console.log('array', btsData.value);
-//   } catch (error) {
-//     console.error('Error getting data:', error);
-//   }
-// };
 const loadingBTS = async () => {
   const { data, loading } = await useFetchData(btsCollection);
   mappingBtsData(data);
@@ -340,7 +338,10 @@ watch(btsCalc, () => {
   </uL> -->
   <!-- <h4>{{ defaultLocation }}</h4> -->
   <div class="map-content">
-    <Loading v-if="isLoad">Loading Data BTS...</Loading>
+    <v-skeleton-loader
+      type="image,image,image,image,image"
+      v-if="isLoad"
+    ></v-skeleton-loader>
     <LMap
       ref="map"
       :zoom="zoom"
@@ -373,6 +374,7 @@ watch(btsCalc, () => {
                   <tr>
                     <th>Nama BTS</th>
                     <th>Jarak</th>
+                    <th>Jangkauan</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -387,6 +389,7 @@ watch(btsCalc, () => {
                   >
                     <td>{{ data.nama }}</td>
                     <td>{{ data.jarak }} km</td>
+                    <td>{{ statusByPercent(data.jarak) }} %</td>
                     <td>
                       <v-chip :color="statusAllBTS(data.jarak).color">{{
                         statusAllBTS(data.jarak).msg
@@ -400,6 +403,7 @@ watch(btsCalc, () => {
               :title="itemCard.nama"
               :city="cityName"
               :distance="itemCard.jarak"
+              :range="itemCard.jangkauan"
               :status="statusText"
               :status-color="statusColor"
               :capacity="itemCard.kapasitas"
