@@ -1,10 +1,11 @@
-import { getDocs } from 'firebase/firestore';
-const fetchData = async (args: any) => {
+import { getDocs, orderBy, query } from 'firebase/firestore';
+const fetchData = async (args: any, orderField: string) => {
   let loading = true;
   let size;
   const data: any = [];
   try {
-    const querySnapshot = await getDocs(args);
+    const q = query(args, orderBy(orderField));
+    const querySnapshot = await getDocs(q);
 
     querySnapshot.forEach((doc) => {
       // Here, you can access the document data
@@ -12,7 +13,7 @@ const fetchData = async (args: any) => {
     });
     loading = false;
     size = querySnapshot.size;
-    // console.table(data);
+
     // mappingBtsData(data);
     // mappingBtsCalc(data);
 

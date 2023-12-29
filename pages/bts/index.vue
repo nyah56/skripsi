@@ -25,7 +25,9 @@
         </td>
         <td>
           <div class="">
-            <h6 class="text-subtitle-1 font-weight-bold">{{ item.nama }}</h6>
+            <h6 class="text-subtitle-1 font-weight-bold">
+              {{ item.nama_bts }}
+            </h6>
           </div>
         </td>
         <td>
@@ -71,7 +73,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { onMounted, ref, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
@@ -88,30 +90,10 @@ const btsCollection = collection(firestore, 'bts'); // Reference to the "bts" co
 const btsData = ref([]); // A ref to store the data
 
 const isLoad = ref(true);
-onMounted(() => {
-  sortBTSData();
-});
-const sortBTSData = async () => {
-  const { data, loading } = await useFetchData(btsCollection);
 
-  const modifiedData = data.map((item) => {
-    const { nama_bts, alamat, id_bts } = item;
-    // const coordinates = [koordinat.latitude, koordinat.longitude];
-    const numericPart = parseInt(id_bts.slice(3), 10);
-    return {
-      id_bts,
-      nama: nama_bts,
-      alamat,
-      // coordinates,
-      numericPart,
-    };
-  });
-
-  // btsData.value = modifiedData;
-  btsData.value = modifiedData.sort((a, b) => a.numericPart - b.numericPart);
-  // console.table(btsData.value);
-  isLoad.value = loading;
-};
+const { data, loading } = await useFetchData(btsCollection, 'id_bts');
+btsData.value = data;
+isLoad.value = loading;
 
 const deleteBTS = async (id) => {
   try {

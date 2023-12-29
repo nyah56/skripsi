@@ -183,7 +183,7 @@ const validateForm = () => {
 };
 //return btsxx=>xx
 const getLastData = async () => {
-  const { data } = await useFetchData(btsCollection);
+  const { data } = await useFetchData(btsCollection, 'id_bts');
   const idCount = data.map((item) => {
     const { id_bts } = item;
     const numericPart = parseInt(id_bts.slice(3), 10);

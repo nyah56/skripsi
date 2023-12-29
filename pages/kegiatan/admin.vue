@@ -183,7 +183,10 @@ onMounted(() => {
   loadKegiatan();
 });
 const loadKegiatan = async () => {
-  const { data, loading } = await useFetchData(kegiatanCollection);
+  const { data, loading } = await useFetchData(
+    kegiatanCollection,
+    'id_kegiatan'
+  );
   kegiatanData.value = data;
   isLoad.value = loading;
 };

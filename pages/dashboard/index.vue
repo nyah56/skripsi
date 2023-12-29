@@ -21,7 +21,7 @@ const btsCollection = collection(firestore, 'bts');
 const BTSCount = ref();
 
 const fetchDataBTS = async () => {
-  const { size } = await useFetchData(btsCollection);
+  const { size } = await useFetchData(btsCollection, 'id_bts');
   BTSCount.value = size;
 };
 let user = null;

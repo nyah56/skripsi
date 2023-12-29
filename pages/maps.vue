@@ -92,7 +92,7 @@ const mappingBTSCalc = (data) => {
 };
 
 const loadingBTS = async () => {
-  const { data, loading } = await useFetchData(btsCollection);
+  const { data, loading } = await useFetchData(btsCollection, 'id_bts');
   mappingBtsData(data);
   isLoad.value = loading;
 };

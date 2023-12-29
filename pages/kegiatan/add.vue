@@ -154,7 +154,7 @@ const validateForm = () => {
   // Validate additional fields with your existing functions
 };
 const getLastData = async () => {
-  const { data } = await useFetchData(kegiatanCollection);
+  const { data } = await useFetchData(kegiatanCollection, 'id_kegiatan');
   if (data.length == 0) {
     return 1;
   } else {
