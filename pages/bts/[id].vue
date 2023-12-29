@@ -1,5 +1,4 @@
 <template>
-  <Loading v-if="isLoad">Loading Data BTS...</Loading>
   <v-col cols="2">
     <NuxtLink to="/bts/">Back</NuxtLink>
   </v-col>
@@ -129,7 +128,7 @@
 
 <script setup>
 import { MapIcon } from 'vue-tabler-icons';
-import Loading from '@/components/maps/Loading.vue';
+
 import { ref, inject, onMounted } from 'vue';
 import {
   collection,

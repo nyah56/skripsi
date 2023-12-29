@@ -2,8 +2,10 @@
   <v-col cols="2">
     <NuxtLink to="/kegiatan/">Back</NuxtLink>
   </v-col>
+
   <div class="container elevation-4">
     <h2 class="mb-5">Ubah Data Kegiatan</h2>
+
     <form @submit.prevent="handleSubmit">
       <v-row class="d-flex mb-3">
         <v-col cols="12">
@@ -118,6 +120,7 @@ const firestore = inject('firestore'); // Assuming you have a Nuxt plugin that p
 const kegiatanCollection = collection(firestore, 'kegiatan');
 
 const isLoad = ref(false);
+const loadForm = ref(false);
 
 const kegiatan = ref('');
 const pelaksana = ref('');
@@ -141,15 +144,6 @@ const formatDateInput = () => {
 const dayInput = ref();
 const monthInput = ref();
 const yearInput = ref();
-
-const dynamicYear = () => {
-  const year = new Date().getFullYear();
-  const yearRange = [];
-  for (let i = year - 3; i <= year + 3; i++) {
-    yearRange.push(i.toString());
-  }
-  return yearRange;
-};
 
 const params = router.currentRoute.value.params.id;
 // console.log(param);
@@ -206,7 +200,7 @@ const editKegiatan = async (id) => {
   const dateParts = tanggal.value.slice(0, 10).split('/'); // Extract YYYY-MM-DD
   const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
   inputDate.value = dateFormat.parseISO(formattedDate);
-  isLoad.value = false;
+  loadForm.value = false;
 };
 const handleSubmit = async (id) => {
   const q = query(kegiatanCollection, where('id_kegiatan', '==', parseInt(id)));

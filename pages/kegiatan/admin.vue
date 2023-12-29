@@ -120,7 +120,6 @@
 </template>
 
 <script setup>
-import Loading from '@/components/maps/Loading.vue';
 import { EyeIcon } from 'vue-tabler-icons';
 
 import {

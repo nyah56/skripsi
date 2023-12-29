@@ -1,6 +1,6 @@
 <script setup>
 import Button from '@/components/maps/Button.vue';
-import Loading from '@/components/maps/Loading.vue';
+
 import Card from '@/components/maps/Card.vue';
 import { CurrentLocationIcon, XIcon, ListIcon } from 'vue-tabler-icons';
 import { collection } from 'firebase/firestore';

@@ -60,7 +60,6 @@
 </template>
 
 <script setup>
-import Loading from '@/components/maps/Loading.vue';
 import { EditIcon, TrashIcon } from 'vue-tabler-icons';
 
 import {
