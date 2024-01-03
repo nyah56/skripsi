@@ -7,53 +7,55 @@
     type="table-thead,table-tbody"
     v-if="isLoad"
   ></v-skeleton-loader>
-  <v-table class="month-table" v-else>
-    <thead>
-      <tr>
-        <th class="text-subtitle-1 font-weight-bold">Nama Pelanggan</th>
-        <th class="text-subtitle-1 font-weight-bold">Jenis Kegiatan</th>
-        <th class="text-subtitle-1 font-weight-bold">Kegiatan</th>
-        <th class="text-subtitle-1 font-weight-bold">Tanggal</th>
-        <th>Action</th>
-      </tr>
-    </thead>
+  <v-infinite-scroll v-else @load="loadNextData">
+    <v-table class="month-table">
+      <thead>
+        <tr>
+          <th class="text-subtitle-1 font-weight-bold">Nama Pelanggan</th>
+          <th class="text-subtitle-1 font-weight-bold">Jenis Kegiatan</th>
+          <th class="text-subtitle-1 font-weight-bold">Kegiatan</th>
+          <th class="text-subtitle-1 font-weight-bold">Tanggal</th>
+          <th>Action</th>
+        </tr>
+      </thead>
 
-    <tbody>
-      <tr v-if="kegiatanData.length == 0">
-        <td colspan="5" style="text-align: center">Belum ada Kegiatan</td>
-      </tr>
-      <tr
-        v-else
-        v-for="item in kegiatanData"
-        :key="item.id_kegiatan"
-        class="month-item"
-      >
-        <td>
-          <p class="text-15 font-weight-medium">{{ item.nama_pelanggan }}</p>
-        </td>
-        <td>
-          <p class="text-subtitle-1">
-            {{ item.jenis_kegiatan }}
-          </p>
-        </td>
+      <tbody>
+        <tr v-if="kegiatanData.length == 0">
+          <td colspan="5" style="text-align: center">Belum ada Kegiatan</td>
+        </tr>
+        <tr
+          v-else
+          v-for="item in kegiatanData"
+          :key="item.id_kegiatan"
+          class="month-item"
+        >
+          <td>
+            <p class="text-15 font-weight-medium">{{ item.nama_pelanggan }}</p>
+          </td>
+          <td>
+            <p class="text-subtitle-1">
+              {{ item.jenis_kegiatan }}
+            </p>
+          </td>
 
-        <td>
-          <p class="text-subtitle-1">
-            {{ item.kegiatan }}
-          </p>
-        </td>
-        <td>
-          <p class="text-subtitle-1">
-            {{ item.tanggal }}
-          </p>
-        </td>
-        <td>
-          <EyeIcon class="edit" @click="showModal(item.id_kegiatan)"> </EyeIcon>
-        </td>
-      </tr>
-    </tbody>
-  </v-table>
-
+          <td>
+            <p class="text-subtitle-1">
+              {{ item.kegiatan }}
+            </p>
+          </td>
+          <td>
+            <p class="text-subtitle-1">
+              {{ item.tanggal }}
+            </p>
+          </td>
+          <td>
+            <EyeIcon class="edit" @click="showModal(item.id_kegiatan)">
+            </EyeIcon>
+          </td>
+        </tr>
+      </tbody>
+    </v-table>
+  </v-infinite-scroll>
   <v-row justify="center">
     <v-dialog v-model="isShow" width="1024">
       <v-card>
@@ -151,6 +153,7 @@ const showModal = (item) => {
   isShow.value = true;
   showKegiatan(item);
 };
+
 const showKegiatan = async (id) => {
   //   console.log(parseInt(id));
   const q = query(kegiatanCollection, where('id_kegiatan', '==', parseInt(id)));
@@ -177,19 +180,53 @@ const kegiatanCollection = collection(firestore, 'kegiatan'); // Reference to th
 const kegiatanData = ref([]); // A ref to store the data
 
 const isLoad = ref(true);
-
-onMounted(() => {
-  // sortBTSData();
-  loadKegiatan();
-});
-const loadKegiatan = async () => {
-  const { data, loading } = await useFetchData(
+const loadData = async () => {
+  const data = [];
+  const { snapshot, loading } = await useFetchPaginate(
     kegiatanCollection,
     'id_kegiatan'
   );
+  snapshot.forEach((doc) => {
+    data.push(doc.data());
+  });
   kegiatanData.value = data;
   isLoad.value = loading;
 };
+
+const loadNextData = async ({ done }) => {
+  const data = [];
+  const { nextSnapshot, loading, size } = await useFetchPaginate(
+    kegiatanCollection,
+    'id_kegiatan'
+  );
+  if (kegiatanData.value.length != size) {
+    nextSnapshot.forEach((doc) => {
+      data.push(doc.data());
+    });
+    kegiatanData.value.push(...data);
+    // console.log(btsData.value);
+    isLoad.value = loading;
+    // console.log(size);
+    done('ok');
+    return;
+  }
+  done('empty');
+};
+onMounted(() => {
+  loadData();
+});
+// onMounted(() => {
+//   // sortBTSData();
+//   loadKegiatan();
+// });
+// const loadKegiatan = async () => {
+//   const { data, loading } = await useFetchData(
+//     kegiatanCollection,
+//     'id_kegiatan'
+//   );
+//   kegiatanData.value = data;
+//   isLoad.value = loading;
+// };
 </script>
 <style scoped>
 .heading {

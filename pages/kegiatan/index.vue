@@ -9,59 +9,61 @@
     type="table-thead,table-tbody"
     v-if="isLoad"
   ></v-skeleton-loader>
-  <v-table class="month-table" v-else>
-    <thead>
-      <tr>
-        <th class="text-subtitle-1 font-weight-bold">Nama Pelanggan</th>
-        <th class="text-subtitle-1 font-weight-bold">Jenis Kegiatan</th>
-        <th class="text-subtitle-1 font-weight-bold">Kegiatan</th>
-        <th class="text-subtitle-1 font-weight-bold">Tanggal</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-if="kegiatanData.length == 0">
-        <td colspan="5" style="text-align: center">Belum ada Kegiatan</td>
-      </tr>
-      <tr
-        v-else
-        v-for="item in kegiatanData"
-        :key="item.id_kegiatan"
-        class="month-item"
-      >
-        <td>
-          <p class="text-15 font-weight-medium">{{ item.nama_pelanggan }}</p>
-        </td>
-        <td>
-          <p class="text-subtitle-1">
-            {{ item.jenis_kegiatan }}
-          </p>
-        </td>
+  <v-infinite-scroll v-else @load="loadNextKegiatan">
+    <v-table class="month-table">
+      <thead>
+        <tr>
+          <th class="text-subtitle-1 font-weight-bold">Nama Pelanggan</th>
+          <th class="text-subtitle-1 font-weight-bold">Jenis Kegiatan</th>
+          <th class="text-subtitle-1 font-weight-bold">Kegiatan</th>
+          <th class="text-subtitle-1 font-weight-bold">Tanggal</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="kegiatanData.length == 0">
+          <td colspan="5" style="text-align: center">Belum ada Kegiatan</td>
+        </tr>
+        <tr
+          v-else
+          v-for="item in kegiatanData"
+          :key="item.id_kegiatan"
+          class="month-item"
+        >
+          <td>
+            <p class="text-15 font-weight-medium">{{ item.nama_pelanggan }}</p>
+          </td>
+          <td>
+            <p class="text-subtitle-1">
+              {{ item.jenis_kegiatan }}
+            </p>
+          </td>
 
-        <td>
-          <p class="text-subtitle-1">
-            {{ item.kegiatan }}
-          </p>
-        </td>
-        <td>
-          <p class="text-body-1 text-muted">{{ item.tanggal }}</p>
-        </td>
-        <td>
-          <NuxtLink :to="`/kegiatan/${item.id_kegiatan}`"
-            ><edit-icon class="edit mr-2"></edit-icon
-          ></NuxtLink>
-          <PrinterIcon
-            class="edit mr-2"
-            @click="showModalPrint(item.id_kegiatan)"
-          >
-          </PrinterIcon>
+          <td>
+            <p class="text-subtitle-1">
+              {{ item.kegiatan }}
+            </p>
+          </td>
+          <td>
+            <p class="text-body-1 text-muted">{{ item.tanggal }}</p>
+          </td>
+          <td>
+            <NuxtLink :to="`/kegiatan/${item.id_kegiatan}`"
+              ><edit-icon class="edit mr-2"></edit-icon
+            ></NuxtLink>
+            <PrinterIcon
+              class="edit mr-2"
+              @click="showModalPrint(item.id_kegiatan)"
+            >
+            </PrinterIcon>
 
-          <TrashIcon class="delete" @click="showModal(item.id_kegiatan)">
-          </TrashIcon>
-        </td>
-      </tr>
-    </tbody>
-  </v-table>
+            <TrashIcon class="delete" @click="showModal(item.id_kegiatan)">
+            </TrashIcon>
+          </td>
+        </tr>
+      </tbody>
+    </v-table>
+  </v-infinite-scroll>
 
   <v-dialog v-model="isShow" width="400">
     <v-card>
@@ -95,6 +97,8 @@ import {
   getDoc,
   query,
   where,
+  limit,
+  startAfter,
 } from 'firebase/firestore';
 import { onMounted, ref, computed } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
@@ -129,8 +133,8 @@ const openInWindow = async () => {
               <td class="text-subtitle-1">${kesimpulan.value}</td>
             </tr>
           </thead>
-        </table> 
-        
+        </table>
+
         <style >
         .full{
           width:400px;
@@ -170,7 +174,7 @@ const openInWindow = async () => {
       }
       @media print, screen and (min-width: 210mm) and (min-height: 297mm) {
         /* Styles for A4 size */
-        
+
       }
         </style>`);
   const pdf = await htmlToPdf(htmlEl, undefined, {
@@ -204,7 +208,7 @@ const showModal = (item) => {
   isShow.value = true;
 };
 const showModalPrint = async (item) => {
-  console.log(item);
+  // console.log(item);
   await showKegiatan(item);
   openInWindow();
   // deleteData.value = item;
@@ -246,15 +250,43 @@ onMounted(() => {
   // sortBTSData();
   useStateChange(user);
   loadKegiatan(auth);
+  // loadNextKegiatan(auth);
 });
 const loadKegiatan = async (id) => {
   // console.log(typeof id);
-  const q = query(kegiatanCollection, where('createdByUid', '==', id));
+  const q = query(
+    kegiatanCollection,
+    where('createdByUid', '==', id),
+    limit(10)
+  );
   const querySnapshot = await getDocs(q);
+  const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
   const kegiatanList = querySnapshot.docs.map((doc) => doc.data());
+
   kegiatanData.value = kegiatanList;
-  // console.log(kegiatanData.value);
+
+  // let nextSnapshot = await getDocs(next);
+  // console.log(nextSnapshot);
   isLoad.value = false;
+  return { lastVisible };
+};
+const loadNextKegiatan = async ({ done }) => {
+  const q = query(kegiatanCollection, where('createdByUid', '==', auth));
+  const size = (await getDocs(q)).size;
+
+  if (kegiatanData.value.length != size) {
+    const { lastVisible } = await loadKegiatan(auth);
+    // console.log(size);
+    let next = query(kegiatanCollection, startAfter(lastVisible), limit(10));
+    let nextSnapshot = await getDocs(next);
+    const kegiatanList = nextSnapshot.docs.map((doc) => doc.data());
+    done('ok');
+    kegiatanData.value.push(...kegiatanList);
+    return;
+  }
+  done('empty');
+
+  // console.log(nextSnapshot);
 };
 
 const deleteKegiatan = async (id) => {

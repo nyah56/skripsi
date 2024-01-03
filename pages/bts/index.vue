@@ -9,41 +9,44 @@
     type="table-thead,table-tbody"
     v-if="isLoad"
   ></v-skeleton-loader>
-  <v-table class="month-table" v-else>
-    <thead>
-      <tr>
-        <th class="text-subtitle-1 font-weight-bold">ID BTS</th>
-        <th class="text-subtitle-1 font-weight-bold">Nama BTS</th>
-        <th class="text-subtitle-1 font-weight-bold">Alamat</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="item in btsData" :key="item.id_bts" class="month-item">
-        <td>
-          <p class="text-15 font-weight-medium">{{ item.id_bts }}</p>
-        </td>
-        <td>
-          <div class="">
-            <h6 class="text-subtitle-1 font-weight-bold">
-              {{ item.nama_bts }}
-            </h6>
-          </div>
-        </td>
-        <td>
-          <h6 class="text-body-1 text-muted">{{ item.alamat }}</h6>
-        </td>
-        <td>
-          <NuxtLink :to="`/bts/${item.id_bts}`"
-            ><edit-icon class="edit mr-2"></edit-icon
-          ></NuxtLink>
-          <TrashIcon class="delete" @click="showModal(item.id_bts)">
-            ></TrashIcon
-          >
-        </td>
-      </tr>
-    </tbody>
-  </v-table>
+  <v-infinite-scroll v-else @load="loadNextData">
+    <v-table class="month-table">
+      <thead>
+        <tr>
+          <th class="text-subtitle-1 font-weight-bold">ID BTS</th>
+          <th class="text-subtitle-1 font-weight-bold">Nama BTS</th>
+          <th class="text-subtitle-1 font-weight-bold">Alamat</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr v-for="item in btsData" :key="item.id_bts" class="month-item">
+          <td>
+            <p class="text-15 font-weight-medium">{{ item.id_bts }}</p>
+          </td>
+          <td>
+            <div class="">
+              <h6 class="text-subtitle-1 font-weight-bold">
+                {{ item.nama_bts }}
+              </h6>
+            </div>
+          </td>
+          <td>
+            <h6 class="text-body-1 text-muted">{{ item.alamat }}</h6>
+          </td>
+          <td>
+            <NuxtLink :to="`/bts/${item.id_bts}`"
+              ><edit-icon class="edit mr-2"></edit-icon
+            ></NuxtLink>
+            <TrashIcon class="delete" @click="showModal(item.id_bts)">
+              ></TrashIcon
+            >
+          </td>
+        </tr>
+      </tbody>
+    </v-table>
+  </v-infinite-scroll>
   <v-dialog v-model="isShow" width="400" v-if="isShow">
     <v-card>
       <v-card-title class="text-h5"> Yakin ingin Menghapus Data? </v-card-title>
@@ -73,7 +76,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { CirclePlusIcon } from 'vue-tabler-icons';
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
@@ -91,10 +94,41 @@ const btsData = ref([]); // A ref to store the data
 
 const isLoad = ref(true);
 
-const { data, loading } = await useFetchData(btsCollection, 'id_bts');
-btsData.value = data;
-isLoad.value = loading;
+// const { data, loading } = await useFetchData(btsCollection, 'id_bts');
+// btsData.value = data;
+// isLoad.value = loading;
+const loadData = async () => {
+  const data = [];
+  const { snapshot, loading } = await useFetchPaginate(btsCollection, 'id_bts');
+  snapshot.forEach((doc) => {
+    data.push(doc.data());
+  });
+  btsData.value = data;
+  isLoad.value = loading;
+};
 
+const loadNextData = async ({ done }) => {
+  const data = [];
+  const { nextSnapshot, loading, size } = await useFetchPaginate(
+    btsCollection,
+    'id_bts'
+  );
+  if (btsData.value.length != size) {
+    nextSnapshot.forEach((doc) => {
+      data.push(doc.data());
+    });
+    btsData.value.push(...data);
+    // console.log(btsData.value);
+    isLoad.value = loading;
+    // console.log(size);
+    done('ok');
+    return;
+  }
+  done('empty');
+};
+onMounted(() => {
+  loadData();
+});
 const deleteBTS = async (id) => {
   try {
     const q = query(btsCollection, where('id_bts', '==', id));
