@@ -149,10 +149,12 @@ const getLocation = async (options) => {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        hasLocation.value = true;
         resolve(pos);
       },
       (err) => {
         reject(err);
+        errorStr.value = err.message;
       }
     );
   });
@@ -164,14 +166,13 @@ watch(stateMap, () => {
 const locateMe = async () => {
   // gettingLocation.value = true;
   try {
-    hasLocation.value = true;
     // gettingLocation.value = false;
     const options = {
       enableHighAccuracy: true,
       timeout: 10000,
     };
     location.value = await getLocation(options);
-    // console.log('raw', location.value);
+
     if (options && typeof options.enableHighAccuracy === 'boolean') {
       if (options.enableHighAccuracy) {
         console.log('High accuracy is enabled.');
@@ -200,7 +201,6 @@ const locateMe = async () => {
     // console.log('hai', btsCalc.value);
   } catch (e) {
     // gettingLocation.value = false;
-    errorStr.value = e.message;
   }
 };
 const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
@@ -337,6 +337,17 @@ watch(btsCalc, () => {
     <li>{{ data.coordinates }}</li>
   </uL> -->
   <!-- <h4>{{ defaultLocation }}</h4> -->
+  <v-dialog v-model="errorStr" width="auto">
+    <v-card>
+      <v-card-text>
+        Fitur BTS terdekat harus memiliki akses pada location pada Web Browser
+        allow access location pada setting browser anda
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" block @click="errorStr = null">Tutup</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <div class="map-content">
     <v-skeleton-loader
       type="image,image,image,image,image"
