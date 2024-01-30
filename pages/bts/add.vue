@@ -84,7 +84,12 @@
               <v-card-title>Pilih Koordinat pada Peta</v-card-title>
               <v-card-text style="height: 500px" max-width="400">
                 <!-- Your map content goes here -->
-                <LMap ref="map" :zoom="zoom" :center="defaultLocation">
+                <LMap
+                  ref="map"
+                  :zoom="zoom"
+                  :center="defaultLocation"
+                  :key="stateMap"
+                >
                   <LTileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&amp;copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
@@ -100,6 +105,11 @@
                     <LTooltip>You</LTooltip>
                     <LIcon :icon-url="urlTag" :icon-size="[20, 35]" />
                   </LMarker>
+                  <LControl position="bottomleft"
+                    ><Button @click="locateMe"
+                      ><current-location-icon></current-location-icon
+                    ></Button>
+                  </LControl>
                 </LMap>
               </v-card-text>
               <v-card-actions>
@@ -131,7 +141,8 @@
 import { MapIcon } from 'vue-tabler-icons';
 import { ref, inject } from 'vue';
 import { collection, addDoc, getDocs, GeoPoint } from 'firebase/firestore'; // Make sure to import the necessary Firestore functions
-
+import Button from '@/components/maps/Button.vue';
+import { CurrentLocationIcon } from 'vue-tabler-icons';
 // import fetchData from '@/server/fetchData';
 
 const router = useRouter();
@@ -149,6 +160,66 @@ const jml_pelanggan = ref('');
 const layanan_terpakai = ref('');
 const lat = ref(0);
 const lon = ref(0);
+const location = ref(null);
+const stateMap = ref(false);
+
+const getLocation = async (options) => {
+  return new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+      reject(new Error('Geolocation is not available.'));
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        // hasLocation.value = true;
+        resolve(pos);
+      },
+      (err) => {
+        reject(err);
+        // errorStr.value = err.message;
+      }
+    );
+  });
+};
+const locateMe = async () => {
+  // gettingLocation.value = true;
+  try {
+    // gettingLocation.value = false;
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+    };
+    location.value = await getLocation(options);
+    // console.log(location.value.coords.latitude);
+
+    if (options && typeof options.enableHighAccuracy === 'boolean') {
+      if (options.enableHighAccuracy) {
+        console.log('High accuracy is enabled.');
+      } else {
+        console.log('High accuracy is not enabled.');
+      }
+    } else {
+      console.log(
+        'enableHighAccuracy option is not properly set in the options object.'
+      );
+    }
+    // let defaultLocArr = Object.values(defaultLocation.value);
+    // console.log(defaultLocation.value[0]);
+    defaultLocation.value[0] = location.value.coords.latitude;
+    defaultLocation.value[1] = location.value.coords.longitude;
+    lat.value = location.value.coords.latitude;
+    lon.value = location.value.coords.longitude;
+
+    stateMap.value = !stateMap.value;
+    // console.log({ lat, long });
+    // console.log(btsCalc.value);
+    // return [lat, long];
+
+    // console.log('hai', btsCalc.value);
+  } catch (e) {
+    // gettingLocation.value = false;
+  }
+};
 const openModal = () => {
   showModal.value = true;
 };

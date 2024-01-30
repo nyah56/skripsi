@@ -2,9 +2,15 @@
 import Button from '@/components/maps/Button.vue';
 
 import Card from '@/components/maps/Card.vue';
-import { CurrentLocationIcon, XIcon, ListIcon } from 'vue-tabler-icons';
+import {
+  CurrentLocationIcon,
+  XIcon,
+  ListIcon,
+  ChevronRightIcon,
+} from 'vue-tabler-icons';
 import { collection } from 'firebase/firestore';
 import { onMounted, ref, computed, watch } from 'vue';
+import { resolveDirective } from 'vue';
 // import fetchData from '@/server/fetchData';
 
 const firestore = inject('firestore'); // Inject the Firestore instance from your Nuxt plugin
@@ -205,20 +211,21 @@ const locateMe = async () => {
 };
 const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
-  const oneDeg = 0.0174532925;
+  const oneDeg = 0.0174532925; //radian
 
+  //   konversi ke radian
   let Rlat1 = lat1 * oneDeg;
   let Rlon1 = lon1 * oneDeg;
   let Rlat2 = lat2 * oneDeg;
   let Rlon2 = lon2 * oneDeg;
+  //pembulatan
   Rlat1 = parseFloat(Rlat1.toFixed(11));
   Rlon1 = parseFloat(Rlon1.toFixed(11));
   Rlat2 = parseFloat(Rlat2.toFixed(11));
   Rlon2 = parseFloat(Rlon2.toFixed(11));
-  //   konversi ke radian
-  const x = (Rlon2 - Rlon1) * Math.cos((Rlat1 + Rlat2) / 2);
-  const y = Rlat2 - Rlat1;
-  let d = Math.sqrt(x * x + y * y) * R;
+  const x = (Rlon2 - Rlon1) * Math.cos((Rlat1 + Rlat2) / 2); //logitude
+  const y = Rlat2 - Rlat1; //latitude
+  let d = Math.sqrt(x * x + y * y) * R; //jarak
   d = parseFloat(d.toFixed(4));
   return d;
 };
@@ -330,6 +337,16 @@ watch(btsCalc, () => {
     itemCard.value = selectedItem;
   }
 });
+const router = useRouter();
+const toKegiatan = (args) => {
+  clearNuxtState('detailSurvey');
+  const { nama, sisa_layanan } = searchById(btsCalc.value, args);
+  const dataSurvey = useState(
+    'detailSurvey',
+    () => `BTS yang akan dipakai ${nama} dengan sisa layanan ${sisa_layanan} Mb`
+  );
+  router.push('/kegiatan/add');
+};
 </script>
 <template>
   <!-- <h1>{{ isLoad }}</h1>
@@ -337,6 +354,9 @@ watch(btsCalc, () => {
     <li>{{ data.coordinates }}</li>
   </uL> -->
   <!-- <h4>{{ defaultLocation }}</h4> -->
+  <!-- <div class="alert alert-danger m-0">
+  This is a danger alert — <a href="#" class="alert-link">check it out</a>!
+</div> -->
   <v-dialog v-model="errorStr" width="auto">
     <v-card>
       <v-card-text>
@@ -378,6 +398,7 @@ watch(btsCalc, () => {
           <div class="action-section">
             <x-icon class="close-icon" @click="showList = !showList"></x-icon>
           </div>
+
           <div class="container">
             <div class="tableFixHead">
               <table>
@@ -398,7 +419,20 @@ watch(btsCalc, () => {
                     v-for="data in btsCalc"
                     @click="cardClick(data.id_bts)"
                   >
-                    <td>{{ data.nama }}</td>
+                    <td>
+                      <div class="buttonPass">
+                        {{ data.nama }}
+                        <button
+                          class="button-pass elevation-2"
+                          :class="buttonClass"
+                          @click="toKegiatan(data.id_bts)"
+                          type="button"
+                        >
+                          <ChevronRightIcon></ChevronRightIcon>
+                        </button>
+                      </div>
+                    </td>
+
                     <td>{{ data.jarak }} km</td>
                     <td>{{ statusByPercent(data.jarak) }} %</td>
                     <td>
@@ -556,6 +590,25 @@ tr:hover:not(thead tr) {
 
 .selected {
   background-color: #f7f6f6;
+}
+.buttonPass {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.button-pass {
+  /* Basic button styles */
+
+  border-radius: 100%;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+
+  color: #5d87ff;
 }
 </style>
 <!-- [-7.2928347, 112.721984] -->

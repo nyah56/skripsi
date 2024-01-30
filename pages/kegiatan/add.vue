@@ -102,6 +102,7 @@ const rawAuth = localStorage.getItem('uid');
 const auth = rawAuth.slice(1, -1);
 const router = useRouter();
 const reactOffset = ref();
+const dataSurvey = useState('detailSurvey');
 reactOffset.value = useScreenWH();
 const menu = ref(false);
 
@@ -123,9 +124,11 @@ const formatDateInput = () => {
 const kegiatan = ref('');
 const pelaksana = ref('');
 const jenis_kegiatan = ref('');
+// const useJenisKegiatan = () => useState('jenis_kegiatan');
 const nama_pelanggan = ref('');
 const tanggal = ref('');
 const kesimpulan = ref('');
+dataSurvey ? (kesimpulan.value = dataSurvey.value) : '';
 
 onMounted(() => {
   getLastData();
