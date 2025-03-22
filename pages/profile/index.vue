@@ -13,7 +13,7 @@
             disabled
           ></v-text-field>
         </v-col>
-        <v-col cols="12">
+        <v-col cols="12" v-if="user.emailVerified">
           <v-label class="font-weight-bold mb-1">Old Password</v-label>
           <v-text-field
             variant="outlined"
@@ -23,7 +23,7 @@
             v-model="oldPassword"
           ></v-text-field>
         </v-col>
-        <v-col cols="12">
+        <v-col cols="12" v-if="user.emailVerified">
           <v-label class="font-weight-bold mb-1">New Password</v-label>
           <v-text-field
             variant="outlined"
@@ -44,10 +44,14 @@
             ><span v-if="!isVerify"
               ><span style="color: white">Valdasi Akun</span></span
             >
+
             <v-progress-circular indeterminate v-else></v-progress-circular>
           </v-btn>
+          <h4>
+            Akun belum tervalidasi.Fitur ganti password tidak bisa digunakan
+          </h4>
         </v-col>
-        <v-col cols="6" class="mt-4 pt-0">
+        <v-col cols="6" class="mt-4 pt-0" v-if="user.emailVerified">
           <v-btn
             color="#ff0000"
             size="large"
@@ -60,7 +64,7 @@
           </v-btn>
         </v-col>
         <!-- oldPassword.length > 0 -->
-        <v-col cols="12" class="mt-4 pt-0">
+        <v-col cols="12" class="mt-4 pt-0" v-if="user.emailVerified">
           <v-btn
             color="primary"
             size="large"
@@ -70,7 +74,8 @@
             :disabled="
               isLoad || !(oldPassword.length > 0 && newPassword.length > 0)
             "
-            ><span v-if="!isLoad">Update</span>
+          >
+            <span v-if="!isLoad">Update</span>
             <v-progress-circular indeterminate v-else></v-progress-circular>
           </v-btn>
         </v-col>
